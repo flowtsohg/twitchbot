@@ -1,4 +1,4 @@
-let Bot = require('twitch-bot');
+let Bot = require('twitchbot');
 
 // Make a new bot!
 let bot = new Bot()
