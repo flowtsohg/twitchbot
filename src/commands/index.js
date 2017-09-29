@@ -1,0 +1,23 @@
+module.exports = [
+    require('./hours'),
+    require('./points'),
+    require('./autocomplete'),
+    require('./spy'),
+    require('./die'),
+    require('./commands'),
+    require('./intervals'),
+    require('./top'),
+    require('./gamble'),
+    require('./channeladdpoints'),
+    require('./donate'),
+    require('./wc3stats'),
+    require('./add'),
+    require('./remove'),
+    require('./addpoints'),
+    require('./edit'),
+    require('./channeladdseconds'),
+    require('./howlong'),
+    require('./mute'),
+    require('./unmute'),
+    require('./iflive')
+];

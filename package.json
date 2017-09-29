@@ -1,0 +1,26 @@
+{
+  "name": "twitchbot",
+  "version": "1.0.0",
+  "description": "A simple NodeJS bot for Twitch",
+  "main": "src/bot.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flowtsohg/twitchbot.git"
+  },
+  "author": "Chananya Freiman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flowtsohg/twitchbot/issues"
+  },
+  "homepage": "https://github.com/flowtsohg/twitchbot#readme",
+  "dependencies": {
+    "jsdom": "^11.2.0",
+    "node-fetch": "^1.7.3"
+  }
+}
