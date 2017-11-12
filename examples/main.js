@@ -5,7 +5,9 @@ let bot = new Bot()
 
 // Connect to Twitch using a name and an OAuth token.
 // You can get the token here: http://www.twitchapps.com/tmi/
-bot.connect('name', 'oauth');
+// In addition, if you want to use the Twitch API, you need a client ID.
+// You can get the ID from here: https://dev.twitch.tv/dashboard/apps
+bot.connect('name', 'oauth', 'clientid');
 
 // When the bot is connected...
 bot.on('connected', (bot, event) => {

@@ -46,6 +46,7 @@ class Bot extends EventEmitter {
         this.connected = false;
         this.name = '';
         this.oauth = '';
+        this.clientid = '';
         this.channels = new Map();
         this.commands = db.commands;
         this.nativeCommands = new Map();
@@ -122,11 +123,12 @@ class Bot extends EventEmitter {
         fs.writeFileSync('./data/db.json', JSON.stringify(this.db));
     }
 
-    connect(name, oauth) {
+    connect(name, oauth, clientid) {
         this.socket.connect(6667, 'irc.twitch.tv', () => {
             this.connected = true;
             this.name = name;
             this.oauth = oauth;
+            this.clientid = clientid;
 
             this.socket.setEncoding('utf8');
 			this.socket.setKeepAlive(true);
@@ -136,7 +138,18 @@ class Bot extends EventEmitter {
             this.sendLine('CAP REQ :twitch.tv/membership');
             this.sendLine('CAP REQ :twitch.tv/commands');
 
-            this.twitchAPI = new TwitchAPI(oauth)
+            this.twitchAPI = new TwitchAPI(clientid);
+        });
+    }
+
+    reconnect() {
+        this.socket.connect(6667, 'irc.twitch.tv', () => {
+            this.connected = true;
+
+            this.sendLine(`PASS ${this.oauth}`);
+            this.sendLine(`NICK ${this.name}`);
+            this.sendLine('CAP REQ :twitch.tv/membership');
+            this.sendLine('CAP REQ :twitch.tv/commands');
         });
     }
 
@@ -291,15 +304,18 @@ class Bot extends EventEmitter {
     }
 
     onError(e) {
-        this.log('Error', e)
+        console.log('Error', e)
+        console.log('Trying to reconnect...');
+        
+        this.reconnect();
     }
 	
 	onClose(e) {
-		this.log('Close', e);
+		console.log('Close', e);
 	}
 	
 	onTimeout(e) {
-		this.log('Timeout', e);
+		console.log('Timeout', e);
 	}
 	
     parseLine(line) {

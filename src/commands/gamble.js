@@ -7,7 +7,7 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} <amount>.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} <amount>`);
             channel.chatMessage(`@${user}, gambles the given amount. The amount can be 'all' to go all in.`);
             return;
         }

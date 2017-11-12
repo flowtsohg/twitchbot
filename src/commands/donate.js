@@ -7,7 +7,7 @@ module.exports = {
             args = data.args;
 
         if (args.length < 3) {
-            channel.chatMessage(`@${user}, usage: ${command.name} <user> <amount>.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} <user> <amount>`);
             channel.chatMessage(`@${user}, donate to the given user the given amount. The amount can be 'all' to donate everything.`);
             return;
         }
@@ -54,6 +54,6 @@ module.exports = {
         realUser.points -= amount;
         realTarget.points += amount;
 
-        channel.chatMessage(`@${user} donated ${amount} ${singleOrPlural} to ${realTarget.name}.`);
+        channel.chatMessage(`@${user} donated ${amount} ${singleOrPlural} to @${realTarget.name}.`);
     }
 };

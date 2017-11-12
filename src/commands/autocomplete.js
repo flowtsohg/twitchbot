@@ -7,7 +7,7 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} <user-autocomplete>.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} <user>`);
             channel.chatMessage(`@${user}, takes a partial name of a user, and tries to autocomplete it.`);
             return;
         }

@@ -4,7 +4,7 @@ module.exports = {
     handler: function (channel, data) {
         let user = data.event.user;
 
-        channel.bot.twitchAPI.fetchUserFollowObject(channel.name, user)
+        channel.bot.twitchAPI.fetchUserFollow(channel.name, user)
             .catch((reason) => {
                 channel.chatMessage(`@${user} is not following ${channel.name}.`);
             })

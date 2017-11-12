@@ -8,9 +8,9 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name> <permitted> <response>.`);
-            channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name> <timeout> <response>.`);
-            channel.chatMessage(`adds a new command or interval.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} command <name> <permitted> <response>`);
+            channel.chatMessage(`@${user}, usage: ${command.name} interval <name> <timeout> <response>`);
+            channel.chatMessage(`@${user}, adds a new command or interval.`);
             return;
         }
 
@@ -18,7 +18,7 @@ module.exports = {
 
         if ('command'.startsWith(arg1)) {
             if (args.length < 5) {
-                channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name> <permitted> <response>.`);
+                channel.chatMessage(`@${user}, usage: ${command.name} command <name> <permitted> <response>`);
                 return;
             }
 
@@ -30,15 +30,41 @@ module.exports = {
             }
 
             let arg3 = args[3].toLowerCase(),
-                permitted = [];
+                permitted = [],
+                privLevel = channel.getUserPrivLevel(user);
             
             if ('all'.startsWith(arg3)) {
-                permitted[0] = "all";
+                permitted[0] = 'all';
             } else if ('mod'.startsWith(arg3)) {
-                permitted[0] = "mod";
+                if (privLevel > 0) {
+                    permitted[0] = 'mod';  
+                } else {
+                    channel.chatMessage(`@${user}, you do not have permissions to use '${arg3}'`);
+                    return;
+                }
+            } else if ('streamer'.startsWith(arg3)) {
+                if (privLevel > 1) {
+                    permitted[0] = 'streamer';  
+                } else {
+                    channel.chatMessage(`@${user}, you do not have permissions to use '${arg3}'`);
+                    return;
+                }
+            } else if ('owner'.startsWith(arg3)) {
+                if (privLevel > 2) {
+                    permitted[0] = 'owner';  
+                } else {
+                    channel.chatMessage(`@${user}, you do not have permissions to use '${arg3}'`); 
+                    return;
+                }
             } else {
-                channel.chatMessage(`@${user}, '${arg3}' is not a valid permission`);
-                return;
+                let target = channel.getUser(arg3.toLowerCase(), true);
+
+                if (!target) {
+                    channel.chatMessage(`@${user}, I don't know who '${arg3}' is.`);
+                    return;
+                }
+
+                permitted[0] = target.name;
             }
 
             let arg4ToEnd = args.slice(4).join(' ');
@@ -48,7 +74,7 @@ module.exports = {
             channel.chatMessage(`@${user}, done.`);
         } else if ('interval'.startsWith(arg1)) {
             if (args.length < 5) {
-                channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name> <timeout> <response>.`);
+                channel.chatMessage(`@${user}, usage: ${command.name} interval <name> <timeout> <response>`);
                 return;
             }
 
@@ -78,9 +104,9 @@ module.exports = {
 
             channel.chatMessage(`@${user}, done.`);
         } else {
-            channel.chatMessage(`@${user}, usage: ${command.name} <'command'-autocomplete'> <name> <permitted> <response>.`);
-            channel.chatMessage(`@${user}, usage: ${command.name} <'interval'-autocomplete'> <name> <timeout> <response>.`);
-            channel.chatMessage(`adds a new command or interval.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} command <name> <permitted> <response>`);
+            channel.chatMessage(`@${user}, usage: ${command.name} interval <name> <timeout> <response>`);
+            channel.chatMessage(`@${user}, adds a new command or interval.`);
             return;
         }
     }

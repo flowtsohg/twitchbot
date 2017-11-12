@@ -7,8 +7,8 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} <user-autocomplete>.`);
-            channel.chatMessage(`@${user}, spies the amount of memes <user> has.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} <user>`);
+            channel.chatMessage(`@${user}, spies the amount of ${channel.settings.pointsNamePlural} the given user has.`);
             return;
         }
 
@@ -22,7 +22,7 @@ module.exports = {
             if (user === target.name) {
                 channel.chatMessage(`@${user}, you have ${amount} ${singleOrPlural}.`);
             } else {
-                channel.chatMessage(`@${user}, ${target.name} has ${amount} ${singleOrPlural}.`);
+                channel.chatMessage(`@${user}, @${target.name} has ${amount} ${singleOrPlural}.`);
             }
         } else {
             channel.chatMessage(`@${user}, I don't know who '${name}' is.`);

@@ -8,9 +8,9 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name> <permitted> <response>.`);
-            channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name> <timeout> <response>.`);
-            channel.chatMessage(`edits an existing command or interval.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} command <name> <permitted> <response>`);
+            channel.chatMessage(`@${user}, usage: ${command.name} interval <name> <timeout> <response>`);
+            channel.chatMessage(`@${user}, edits an existing command or interval.`);
             return;
         }
 
@@ -18,7 +18,7 @@ module.exports = {
 
         if ('command'.startsWith(arg1)) {
             if (args.length < 5) {
-                channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name> <permitted> <response>.`);
+                channel.chatMessage(`@${user}, usage: ${command.name} command <name> <permitted> <response>.`);
                 return;
             }
 
@@ -50,7 +50,7 @@ module.exports = {
             channel.chatMessage(`@${user}, done.`);
         } else if ('interval'.startsWith(arg1)) {
             if (args.length < 5) {
-                channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name> <timeout> <response>.`);
+                channel.chatMessage(`@${user}, usage: ${command.name} interval <name> <timeout> <response>.`);
                 return;
             }
 
@@ -82,9 +82,9 @@ module.exports = {
 
             channel.chatMessage(`@${user}, done.`);
         } else {
-            channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name> <permitted> <response>.`);
-            channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name> <timeout> <response>.`);
-            channel.chatMessage(`edits an existing command or interval.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} command <name> <permitted> <response>.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} interval <name> <timeout> <response>.`);
+            channel.chatMessage(`@${user}, edits an existing command or interval.`);
             return;
         }
     }

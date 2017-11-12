@@ -8,9 +8,9 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name>.`);
-            channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name>.`);
-            channel.chatMessage(`removes a command or an interval.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} command <name>`);
+            channel.chatMessage(`@${user}, usage: ${command.name} interval <name>`);
+            channel.chatMessage(`@${user}, removes a command or an interval.`);
             return;
         }
 
@@ -18,7 +18,7 @@ module.exports = {
 
         if ('command'.startsWith(arg1)) {
             if (args.length < 3) {
-                channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name>.`);
+                channel.chatMessage(`@${user}, usage: ${command.name} command <name>`);
                 return;
             }
 
@@ -33,7 +33,7 @@ module.exports = {
             channel.chatMessage(`@${user}, done.`);
         } else if ('interval'.startsWith(arg1)) {
             if (args.length < 3) {
-                channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name>.`);
+                channel.chatMessage(`@${user}, usage: ${command.name} interval <name>`);
                 return;
             }
 
@@ -47,9 +47,9 @@ module.exports = {
 
             channel.chatMessage(`@${user}, done.`);
         } else {
-            channel.chatMessage(`@${user}, usage: ${command.name} 'command'-autocomplete <name>.`);
-            channel.chatMessage(`@${user}, usage: ${command.name} 'interval'-autocomplete <name>.`);
-            channel.chatMessage(`removes a command or an interval.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} command' <name>`);
+            channel.chatMessage(`@${user}, usage: ${command.name} interval <name>`);
+            channel.chatMessage(`@${user}, removes a command or an interval.`);
             return;
         }
     }

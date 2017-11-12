@@ -194,6 +194,22 @@ class Channel extends EventEmitter {
         return this.bot.getCommand(name) || this.commands[name];
     }
 
+    getUserPrivLevel(userName) {
+        // Owner.
+        if (userName === this.bot.name) {
+            return 3;
+        // Streamer.
+        } else if (userName === this.name) {
+            return 2;
+        // Moderator.
+        } else if (this.mods.has(userName)) {
+            return 1;
+        }
+
+        // Normal user.
+        return 0;
+    }
+
     isPrivilegedForCommand(userName, command) {
         for (let token of command.permitted) {
             if (token === 'all') {
@@ -236,27 +252,22 @@ class Channel extends EventEmitter {
             
             if (nativeCommand) {
                 nativeCommand(this, data);
-                return;
             }
+        } else {
+            this.chatMessage(args.join(' '));
         }
-        
-        this.chatMessage(response)
     }
 
     handleCommand(event) {
         let message = event.data,
-            arg0 = message.split(' ', 1)[0].toLowerCase(),
-            command = this.getCommand(arg0);
-
+            command = this.getCommand(message.split(' ', 1)[0].toLowerCase());
+        
         if (command) {
             if (this.isPrivilegedForCommand(event.user, command)) {
-                let data = { command, event, args: this.buildCommandArgs(command, event) };
-
-                this.runCommand(data);
+                this.runCommand({ command, event, args: this.buildCommandArgs(command, event) });
             } else {
                 this.chatMessage(`@${event.user}, you are not allowed to use that.`);
             }
-
         }
     }
 
@@ -344,7 +355,7 @@ class Channel extends EventEmitter {
 
     updateLive() {
         if (!this.isHosting) {
-            this.bot.twitchAPI.fetchStreamObject(this.name)
+            this.bot.twitchAPI.fetchStream(this.name)
                 .then((json) => {
                     // Again, because the fetch might have happened before getting the host event.
                     if (json && !this.isHosting) {

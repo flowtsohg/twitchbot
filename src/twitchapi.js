@@ -1,12 +1,12 @@
 ﻿let fetch = require('node-fetch');
 
 class TwitchAPI  {
-    constructor(oauth) {
-        this.oauth = oauth;
+    constructor(clientid) {
+        this.clientid = clientid;
     }
 
     fetch(url) {
-        return fetch(url, { headers: { 'Client-ID': this.oauth, 'Accept': 'application/vnd.twitchtv.v5+json' } })
+        return fetch(url, { headers: { 'Client-ID': this.clientid, 'Accept': 'application/vnd.twitchtv.v5+json' } })
             .catch((reason) => {
                 console.log(`Failed to fetch ${url}`);
             })
@@ -18,7 +18,7 @@ class TwitchAPI  {
             });
     }
 
-    fetchUserObjects(userNames) {
+    fetchUsers(userNames) {
         return this.fetch(`https://api.twitch.tv/kraken/users/?login=${userNames.join(',')}`)
             .then((usersObject) => {
                 if (usersObject) {
@@ -29,8 +29,17 @@ class TwitchAPI  {
             });
     }
 
-    fetchStreamObject(streamName) {
-        return this.fetchUserObjects([streamName])
+    fetchChannel(channelName) {
+        return this.fetchUsers([channelName])
+            .then((users) => {
+                if (users.length === 1) {
+                    return this.fetch(`https://api.twitch.tv/kraken/channels/${users[0]._id}`);
+                }
+            });
+    }
+
+    fetchStream(streamName) {
+        return this.fetchUsers([streamName])
             .then((users) => {
                 if (users.length === 1) {
                     return this.fetch(`https://api.twitch.tv/kraken/streams/${users[0]._id}`);
@@ -38,8 +47,8 @@ class TwitchAPI  {
             });
     }
 
-    fetchUserFollowObject(streamName, userName) {
-        return this.fetchUserObjects([streamName, userName])
+    fetchUserFollow(streamName, userName) {
+        return this.fetchUsers([streamName, userName])
             .then((users) => {
                 if (users.length === 2) {
                     return this.fetch(`https://api.twitch.tv/kraken/users/${users[1]._id}/follows/channels/${users[0]._id}`);
@@ -47,9 +56,8 @@ class TwitchAPI  {
             });
     }
 
-    // Whoops, need an actual client ID for this one, no cheating.
-    fetchUserSubscriptionObject(streamName, userName) {
-        return this.fetchUserObjects([streamName, userName])
+    fetchUserSubscription(streamName, userName) {
+        return this.fetchUsers([streamName, userName])
             .then((users) => {
                 if (users.length === 2) {
                     return this.fetch(`https://api.twitch.tv/kraken/users/${users[1]._id}/subscriptions/${users[0]._id}`);
@@ -57,13 +65,13 @@ class TwitchAPI  {
             });
     }
     
-    fetchUserEmotesObject(userName) {
-        return this.fetchUserObjects([userName])
+    fetchUserEmotes(userName) {
+        return this.fetchUsers([userName])
             .then((users) => {
                 return this.fetch(`https://api.twitch.tv/kraken/users/${users[0]._id}/emotes`);
             });
     }
-
+    
     fetchChatters(streamName) {
         return fetch(`https://tmi.twitch.tv/group/user/${streamName}/chatters`)
             .catch((reason) => {

@@ -7,7 +7,7 @@ module.exports = {
             args = data.args;
 
         if (args.length < 3) {
-            channel.chatMessage(`@${user}, usage: ${command.name} <user-autocomplete> <amount>.`);
+            channel.chatMessage(`@${user}, usage: ${command.name} <user> <amount>`);
             channel.chatMessage(`@${user}, add the given amount of ${channel.settings.pointsNamePlural} to the given user. Add to 'all' to add to all current chat viewers.`);
             return;
         }
@@ -38,14 +38,18 @@ module.exports = {
             return;
         }
 
+        let singleOrPlural = (amount === 1) ? channel.settings.pointsNameSingle : channel.settings.pointsNamePlural;
+
         if (lowerArg1 === 'all') {
             for (let chatter of channel.chatters.values()) {
                 chatter.points += amount;
             }
+
+            channel.chatMessage(`@${user}, added ${amount} ${singleOrPlural} to all chatters.`);
         } else {
             realTarget.points += amount;
-        }
 
-        channel.chatMessage(`@${user}, done.`);
+            channel.chatMessage(`@${user}, added ${amount} ${singleOrPlural} to @${realTarget.name}.`);
+        }
     }
 };
