@@ -52,11 +52,11 @@ module.exports = {
         } else if (rand < 99) {
             realUser.points += amount * 2;
 
-            channel.chatMessage(`@${user} won ${amount * 2} memes and now has ${realUser.points} (${rand}).`);
+            channel.chatMessage(`@${user} won ${amount * 2} ${singleOrPlural} and now has ${realUser.points} (${rand}).`);
         } else {
             realUser.points += amount * 3;
 
-            channel.chatMessage(`@${user} won ${amount * 3} memes and now has ${realUser.points} (${rand}).`);
+            channel.chatMessage(`@${user} won ${amount * 3} ${singleOrPlural} and now has ${realUser.points} (${rand}).`);
         }
     }
 };

@@ -27,9 +27,7 @@ class Channel extends EventEmitter {
         this.intervals = db.intervals;
 
         for (let interval of Object.values(db.intervals)) {
-            let data = { command: interval, args: this.buildCommandArgs(interval) };
-
-            this.addTimer(interval.name, () => this.runCommand(data), interval.timeout * 1000);
+            this.addTimer(interval.name, () => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }), interval.timeout * 1000);
         }
     }
     
@@ -118,9 +116,7 @@ class Channel extends EventEmitter {
 
             intervals[name] = interval;
 
-            let data = { command: interval, args: this.buildCommandArgs(interval) };
-
-            this.addTimer(interval.name, () => this.runCommand(data), timeout * 1000);
+            this.addTimer(interval.name, () => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }), timeout * 1000);
 
             return true;
         }
@@ -238,7 +234,41 @@ class Channel extends EventEmitter {
         let args = command.response.split(' ');
 
         if (event) {
-            args.push(...event.data.split(' ').slice(1));
+            let eventArgs = event.data.split(' ').slice(1),
+                elementsToRemove = [];
+            
+            for (let i = 0, l = args.length; i < l; i++) {
+                let arg = args[i],
+                    match;
+                    
+                // Replace $argN with the Nth event argument.
+                match = arg.match(/\$arg(\d+)/);
+                if (match) {
+                    let index = parseInt(match[1], 10),
+                        eventArg = eventArgs[index];
+
+                    if (eventArg) {
+                        args[i] = eventArg;
+
+                        elementsToRemove.push(index)
+                    }
+                }
+
+                // Replace $user with the event user.
+                if (arg === '$user') {
+                    args[i] = event.user;
+                }
+            }
+
+            // Remove duplicates and sort.
+            elementsToRemove = [...new Set(elementsToRemove)].sort((a, b) => b - a);
+
+            // Remove event arguments that were injected.
+            for (let i of elementsToRemove) {
+                eventArgs.splice(i, 1);
+            }
+
+            args.push(...eventArgs);
         }
 
         return args;
@@ -252,10 +282,11 @@ class Channel extends EventEmitter {
             
             if (nativeCommand) {
                 nativeCommand(this, data);
+                return;
             }
-        } else {
-            this.chatMessage(args.join(' '));
         }
+
+        this.chatMessage(args.join(' '));
     }
 
     handleCommand(event) {

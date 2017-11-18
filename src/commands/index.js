@@ -19,5 +19,7 @@ module.exports = [
     require('./howlong'),
     require('./mute'),
     require('./unmute'),
-    require('./iflive')
+    require('./iflive'),
+    require('./pull'),
+    require('./whois')
 ];
