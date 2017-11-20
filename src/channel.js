@@ -206,28 +206,32 @@ class Channel extends EventEmitter {
         return 0;
     }
 
-    isPrivilegedForCommand(userName, command) {
+    getPriviliegeToken(userName, command) {
         for (let token of command.permitted) {
-            if (token === 'all') {
-                return true;
-            } else if (token === 'mod') {
-                if (this.mods.has(userName)) {
-                    return true;
+            if (token === userName) {
+                return userName;
+            } else if (token === 'owner') {
+                if (userName === this.bot.name) {
+                    return 'owner';
                 }
             } else if (token === 'streamer') {
                 if (userName === this.name) {
-                    return true;
+                    return 'streamer';
                 }
-            } else if (token === 'owner') {
-                if (userName === this.bot.name) {
-                    return true;
+            } else if (token === 'mod') {
+                if (this.mods.has(userName)) {
+                    return 'mod';
                 }
-            } else if (token === userName) {
-                return true;
-            }
+            } if (token === 'all') {
+                return 'all';
+            } 
         }
 
-        return false;
+        return '';
+    }
+
+    isPrivilegedForCommand(userName, command) {
+        return !!this.getPriviliegeToken(userName, command);
     }
 
     buildCommandArgs(command, event) {
