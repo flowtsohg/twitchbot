@@ -21,5 +21,6 @@ module.exports = [
     require('./unmute'),
     require('./iflive'),
     require('./pull'),
-    require('./whois')
+    require('./whois'),
+    require('./table')
 ];
