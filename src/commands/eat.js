@@ -1,6 +1,6 @@
 // args: <amount|all>
 module.exports = {
-    name: 'gamble',
+    name: 'eat',
     handler: function (channel, data) {
         let command = data.command,
             user = data.event.user,
@@ -8,7 +8,7 @@ module.exports = {
 
         if (args.length < 2) {
             channel.chatMessage(`@${user}, usage: ${command.name} <amount>`);
-            channel.chatMessage(`@${user}, gambles the given amount of ${channel.settings.pointsNamePlural}. The amount can be 'all' to go all in.`);
+            channel.chatMessage(`@${user}, eats the given amount of ${channel.settings.pointsNamePlural}. The amount can be 'all' to eat everything.`);
             return;
         }
 
@@ -28,7 +28,7 @@ module.exports = {
         }
 
         if (amount < 1) {
-            channel.chatMessage(`@${user}, you must gamble 1 or more ${channel.settings.pointsNamePlural}.`)
+            channel.chatMessage(`@${user}, you must eat 1 or more ${channel.settings.pointsNamePlural}.`)
             return;
         }
 
@@ -40,23 +40,8 @@ module.exports = {
         }
 
         realUser.points -= amount;
+        realUser.eaten += amount;
 
-        let rand = Math.floor(Math.random() * 100) + 1;
-
-        if (rand < 61) {
-            if (realUser.points === 0) {
-                channel.chatMessage(`@${user} lost ${amount} ${singleOrPlural} and has none left (${rand}).`);
-            } else {
-                channel.chatMessage(`@${user} lost ${amount} ${singleOrPlural} and has ${realUser.points} left (${rand}).`);
-            }
-        } else if (rand < 99) {
-            realUser.points += amount * 2;
-
-            channel.chatMessage(`@${user} won ${amount * 2} ${singleOrPlural} and now has ${realUser.points} (${rand}).`);
-        } else {
-            realUser.points += amount * 3;
-
-            channel.chatMessage(`@${user} won ${amount * 3} ${singleOrPlural} and now has ${realUser.points} (${rand}).`);
-        }
+        channel.chatMessage(`@${user} ate ${amount} ${singleOrPlural}.`);
     }
 };

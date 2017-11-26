@@ -59,6 +59,11 @@ module.exports = {
             let table = tables[tableName];
 
             if (table) {
+                if (args.length < 4) {
+                    channel.chatMessage(`@${user}, nope.`);
+                    return;
+                }
+
                 let index = table.push(`"${args.slice(3).join(' ')}" ~ ${user}`);
 
                 channel.chatMessage(`@${user}, added to "${tableName}" at index ${index}.`);

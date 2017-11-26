@@ -4,6 +4,11 @@ module.exports = {
     handler: function (channel, data) {
         let user = data.event.user;
 
+        if (channel.name === user) {
+            channel.chatMessage(`@${user} is following ${user} since birth.`);
+            return;
+        }
+
         channel.bot.twitchAPI.fetchUserFollow(channel.name, user)
             .catch((reason) => {
                 channel.chatMessage(`@${user} is not following ${channel.name}.`);
@@ -24,7 +29,7 @@ module.exports = {
                 }
                     
                 if (monthes > 0) {
-                    parts.push(`${monthes} monthes`);
+                    parts.push(`${monthes} months`);
                 }
 
                 if (days > 0) {

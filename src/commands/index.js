@@ -22,5 +22,7 @@ module.exports = [
     require('./iflive'),
     require('./pull'),
     require('./whois'),
-    require('./table')
+    require('./table'),
+    require('./eat'),
+    require('./eaten')
 ];

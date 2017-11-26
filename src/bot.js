@@ -120,6 +120,15 @@ class Bot extends EventEmitter {
     }
 
     saveDB() {
+        if (fs.existsSync('./data/db.json')) {
+            if (fs.existsSync('./data/db1.json')) {
+                fs.unlinkSync('./data/db1.json');
+            }
+
+            fs.renameSync('./data/db.json', './data/db1.json')
+        }
+        
+
         fs.writeFileSync('./data/db.json', JSON.stringify(this.db));
     }
 
