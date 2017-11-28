@@ -195,7 +195,8 @@ class Bot extends EventEmitter {
                         settings: { commandsEnabled: false, userDecl: {} },
                         commands: {},
                         intervals: {},
-                        users: {}
+                        users: {},
+                        ignored: {}
                     };
 
                     channels[name] = db;

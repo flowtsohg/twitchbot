@@ -9,7 +9,7 @@
     }
 
     start() {
-        this.intervalID = setInterval(() => this.handler(), this.timeout);
+        this.intervalID = setInterval(() => this.handler(this), this.timeout);
     }
 
     stop() {

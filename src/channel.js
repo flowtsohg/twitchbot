@@ -25,12 +25,38 @@ class Channel extends EventEmitter {
         this.users = db.users;
         this.commands = db.commands;
         this.intervals = db.intervals;
+        this.ignored = db.ignored;
 
         for (let interval of Object.values(db.intervals)) {
             this.addTimer(interval.name, () => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }), interval.timeout * 1000);
         }
     }
     
+    ignore(userName, duration) {
+        this.ignored[userName] = { duration }
+    }
+
+    unignore(userName) {
+        delete this.ignored[userName];
+    }
+    
+    shouldIgnore(userName) {
+        // The streamer and bot owner cannot be ignored.
+        return !!this.ignored[userName] && userName !== this.bot.name && userName !== this.name;
+    }
+
+    updateIgnored(timer) {
+        let ignored = this.ignored;
+
+        for (let [userName, data] of Object.entries(ignored)) {
+            data.duration -= timer.timeout;
+
+            if (data.duration <= 0) {
+                this.unignore(userName);
+            }
+        }
+    }
+
     addTimer(name, handler, timeout) {
         let timers = this.timers;
 
@@ -78,26 +104,6 @@ class Channel extends EventEmitter {
         if (!this.muted) {
             this.bot.rawMessage(`PRIVMSG #${this.name} :${message}`);
         }
-    }
-
-    whisperMessage(target, message) {
-        this.bot.whisperMessage(target, message);
-    }
-
-    banUser(name) {
-        this.bot.chatMessage(this.name, `/ban ${name}`);
-    }
-
-    unbanUser(name) {
-        this.bot.chatMessage(this.name, `/unban ${name}`);
-    }
-
-    timeoutUser(name, duration) {
-        this.bot.chatMessage(this.name, `/timeout ${name} ${duration}`);
-    }
-
-    untimeoutUser(name) {
-        this.bot.chatMessage(this.name, `/untimeout ${name}`);
     }
 
     log(message) {
@@ -316,7 +322,7 @@ class Channel extends EventEmitter {
         this.addChatter(user);
 
         if (type === 'message') {
-            if (this.settings.commandsEnabled) {
+            if (this.settings.commandsEnabled && !this.shouldIgnore(user)) {
                 this.handleCommand(event);
             }
         } else if (type === 'join') {
@@ -334,7 +340,10 @@ class Channel extends EventEmitter {
                 // And check if the channel is live continuously forever.
                 // Note that this may show wrong results for up to a couple of minutes after the channel changed modes.
                 // Twitch. ¯\_(ツ)_/¯
-                this.addTimer('$$channelupdatelive', () => this.updateLive(), 20000)
+                this.addTimer('$$channelupdatelive', () => this.updateLive(), 20000);
+
+                // Update ignored users durations.
+                this.addTimer('$$ignored', (timer) => this.updateIgnored(timer), 1000);
 
                 this.emit('joined', this, event);
             }
