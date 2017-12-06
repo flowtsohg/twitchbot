@@ -237,12 +237,14 @@ class Channel extends EventEmitter {
     }
 
     isPrivilegedForCommand(userName, command) {
-        return !!this.getPriviliegeToken(userName, command);
+        // See if the user matches one of the privilege tokens.
+        // The bot owner is always privileged.
+        return !!this.getPriviliegeToken(userName, command) || userName === this.bot.name;
     }
 
     buildCommandArgs(command, event) {
         let args = command.response.split(' ');
-
+        
         if (event) {
             let eventArgs = event.data.split(' ').slice(1),
                 elementsToRemove = [];
@@ -250,7 +252,7 @@ class Channel extends EventEmitter {
             for (let i = 0, l = args.length; i < l; i++) {
                 let arg = args[i],
                     match;
-                    
+                
                 // Replace $argN with the Nth event argument.
                 match = arg.match(/\$arg(\d+)/);
                 if (match) {

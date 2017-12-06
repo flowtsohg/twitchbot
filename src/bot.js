@@ -44,6 +44,7 @@ class Bot extends EventEmitter {
         this.socket = new net.Socket();
         this.rl = readline.createInterface({ input: this.socket });
         this.connected = false;
+        this.connectedEvent = false;
         this.name = '';
         this.oauth = '';
         this.clientid = '';
@@ -63,7 +64,7 @@ class Bot extends EventEmitter {
 
         this.timers = new Map();
 
-        
+        this.lastLineTime = 0;
     }
 
     setMessageRate(value) {
@@ -303,6 +304,8 @@ class Bot extends EventEmitter {
     }
 
     onLine(line) {
+        this.lastLineTime = Date.now();
+
         if (this.logIO) {
             this.log(`< ${line}`);
         }
@@ -390,13 +393,39 @@ class Bot extends EventEmitter {
         } else if (type === 'ping') {
             this.rawMessage('PONG :tmi.twitch.tv');
         } else if (type === 'connected') {
-            this.connected = true;
+            // The connected event from Twitch can happen more than once, e.g. in case the bot reconnected.
+            // Therefore, only add the timers if this is the first time.
+            if (!this.connectedEvent) {
+                this.connectedEvent = true;
 
-            this.addTimer('$$handleonemessage', () => this.handleOneMessage(), 1000 / (20 / 30));
-            this.addTimer('$$savedb', () => this.saveDB(), 5000);
+                // Handle incoming messages.
+                this.addTimer('$$handleonemessage', () => this.handleOneMessage(), 1000 / (20 / 30));
+
+                // Save the database.
+                this.addTimer('$$savedb', () => this.saveDB(), 5000);
+                
+                // Sometimes, for no apparent reason, Twitch will stop communicating with the bot.
+                // This checks if more than 6 minutes passed since the last message (Twitch sends a PING every ~5 minutes).
+                // If more time passed, it is assumed a reconnect is needed.
+                this.addTimer('$$checkconnection', () => this.checkConnection(), 5000);
+            }
+
+            // If there are already channels, e.g. in case the bot reconnected, rejoin them.
+            for (let channel of this.channels) {
+                channel.join();
+            }
         }
 
         this.emit(type, this, event);
+    }
+
+    checkConnection() {
+        // Did 6 minutes pass since the last message?
+        if (Date.now() - this.lastLineTime > 360000) {
+            console.log('The bot seems to have disconnected for some reason. Trying to reconnect.');
+            this.reconnect();
+
+        }
     }
 
     handleOneMessage() {

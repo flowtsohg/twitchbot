@@ -4,17 +4,12 @@ module.exports = [
     require('./autocomplete'),
     require('./spy'),
     require('./die'),
-    //require('./commands'),
-    //require('./intervals'),
     require('./top'),
     require('./gamble'),
     require('./channeladdpoints'),
     require('./donate'),
     require('./wc3stats'),
-    //require('./add'),
-    //require('./remove'),
     require('./addpoints'),
-    //require('./edit'),
     require('./channeladdseconds'),
     require('./howlong'),
     require('./mute'),
@@ -27,5 +22,6 @@ module.exports = [
     require('./eaten'),
     require('./ignore'),
     require('./commands'),
-    require('./intervals')
+    require('./intervals'),
+    require('./counter')
 ];

@@ -27,7 +27,7 @@ module.exports = {
 
         let tables = channel.db.tables;
 
-        if ('list'.startsWith(tableCmd)) {
+        if (tableCmd === 'list') {
             let keys = Object.keys(tables);
 
             if (keys.length) {
@@ -54,9 +54,7 @@ module.exports = {
                 channel.chatMessage(`@${user}, created table "${tableName}".`);
             }
         } else if (tableCmd === 'delete') {
-            let table = tables[tableName];
-            
-            if (table) {
+            if (tables[tableName]) {
                 delete tables[tableName];
 
                 channel.chatMessage(`@${user}, deleted table "${tableName}".`);
@@ -139,7 +137,7 @@ module.exports = {
             } else {
                 channel.chatMessage(`@${user}, table "${tableName}" does not exist.`);
             }
-        } else if ('rand'.startsWith(tableCmd)) {
+        } else if (tableCmd === 'rand') {
             let table = tables[tableName];
 
             if (table) {

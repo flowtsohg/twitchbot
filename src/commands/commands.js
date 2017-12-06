@@ -105,6 +105,7 @@ module.exports = {
 
             if (!channel.getCommand(arg2)) {
                 channel.chatMessage(`@${user}, that command does not exist.`);
+                return;
             }
 
             channel.removeCommand(arg2);
