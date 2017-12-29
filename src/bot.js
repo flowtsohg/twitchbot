@@ -241,7 +241,7 @@ class Bot extends EventEmitter {
     getTimeStamp() {
         let d = new Date();
         
-        return `${d.getDate()}-${d.getMonth()}-${d.getFullYear()} ${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.${d.getMilliseconds()}`;
+        return `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()} ${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.${d.getMilliseconds()}`;
     }
 
     log(message) {
