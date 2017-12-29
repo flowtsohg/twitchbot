@@ -1,3 +1,5 @@
+let TwitchAPI = require('../twitchapi');
+
 // args:
 module.exports = {
     name: 'howlong',
@@ -9,7 +11,7 @@ module.exports = {
             return;
         }
 
-        channel.bot.twitchAPI.fetchUserFollow(channel.name, user)
+        TwitchAPI.fetchUserFollow(channel.bot.clientid, channel.name, user)
             .catch((reason) => {
                 channel.chatMessage(`@${user} is not following ${channel.name}.`);
             })

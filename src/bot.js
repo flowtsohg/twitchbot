@@ -2,7 +2,6 @@ let EventEmitter = require('events');
 let net = require('net');
 let readline = require('readline');
 let fs = require('fs');
-let TwitchAPI = require('./twitchapi');
 let Timer = require('./timer');
 let Channel = require('./channel');
 let nativeCommands = require('./commands/');
@@ -40,7 +39,6 @@ class Bot extends EventEmitter {
         this.logIO = true;
 		this.logToConsole = true;
 		this.logToFile = true;
-        this.twitchAPI = null;
         this.socket = new net.Socket();
         this.rl = readline.createInterface({ input: this.socket });
         this.connected = false;
@@ -57,7 +55,9 @@ class Bot extends EventEmitter {
         this.socket.on('error', (e) => this.onError(e));
 		this.socket.on('close', (e) => this.onClose(e));
 		this.socket.on('timeout', (e) => this.onTimeout(e));
-		
+		this.socket.setEncoding('utf8');
+        this.socket.setKeepAlive(true);
+
         for (let command of nativeCommands) {
             this.nativeCommands.set(command.name, command.handler);
         }
@@ -65,6 +65,9 @@ class Bot extends EventEmitter {
         this.timers = new Map();
 
         this.lastLineTime = 0;
+
+        this.lastReconnectTry = 0;
+        this.reconnectTimeout = 5000;
     }
 
     setMessageRate(value) {
@@ -134,34 +137,49 @@ class Bot extends EventEmitter {
     }
 
     connect(name, oauth, clientid) {
-        this.socket.connect(6667, 'irc.twitch.tv', () => {
-            this.connected = true;
-            this.name = name;
-            this.oauth = oauth;
-            this.clientid = clientid;
+        this.name = name;
+        this.oauth = oauth;
+        this.clientid = clientid;
 
-            this.socket.setEncoding('utf8');
-			this.socket.setKeepAlive(true);
-
-            this.sendLine(`PASS ${this.oauth}`);
-            this.sendLine(`NICK ${this.name}`);
-            this.sendLine('CAP REQ :twitch.tv/membership');
-            this.sendLine('CAP REQ :twitch.tv/commands');
-
-            this.twitchAPI = new TwitchAPI(clientid);
-        });
+        this.reconnect();
     }
 
     reconnect() {
-        this.socket.connect(6667, 'irc.twitch.tv', () => {
-            this.connected = true;
+        this.connecting = true;
+        this.connected = false;
 
-            this.sendLine(`PASS ${this.oauth}`);
-            this.sendLine(`NICK ${this.name}`);
-            this.sendLine('CAP REQ :twitch.tv/membership');
-            this.sendLine('CAP REQ :twitch.tv/commands');
+        console.log('Trying to connect...');
+
+        this.socket.connect(6667, 'irc.twitch.tv', () => {
+            // If more than one reconnect is attempted before success, this will be called multiple times.
+            // The first time will set connected to true, and the following calls should be ignored.
+            if (!this.connected) {
+                console.log('Connected');
+
+                this.connecting = false;
+                this.connected = true;
+
+                this.sendLine(`PASS ${this.oauth}`);
+                this.sendLine(`NICK ${this.name}`);
+                this.sendLine('CAP REQ :twitch.tv/membership');
+                this.sendLine('CAP REQ :twitch.tv/commands');
+            }
         });
     }
+
+    onError(e) {
+        console.log(`An error occured, trying to reconnect in ${this.reconnectTimeout}`);
+
+        setTimeout(() => this.reconnect(), this.reconnectTimeout);
+    }
+
+    onClose(e) {
+		console.log('Close', e);
+	}
+	
+	onTimeout(e) {
+		console.log('Timeout', e);
+	}
 
     disconnect() {
         this.connected = false;
@@ -315,21 +333,6 @@ class Bot extends EventEmitter {
             this.handleEvent(event)
         }
     }
-
-    onError(e) {
-        console.log('Error', e)
-        console.log('Trying to reconnect...');
-        
-        this.reconnect();
-    }
-	
-	onClose(e) {
-		console.log('Close', e);
-	}
-	
-	onTimeout(e) {
-		console.log('Timeout', e);
-	}
 	
     parseLine(line) {
         let match;
@@ -411,7 +414,7 @@ class Bot extends EventEmitter {
             }
 
             // If there are already channels, e.g. in case the bot reconnected, rejoin them.
-            for (let channel of this.channels) {
+            for (let channel of this.channels.values()) {
                 channel.join();
             }
         }

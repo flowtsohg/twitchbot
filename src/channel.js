@@ -1,5 +1,6 @@
 ﻿let EventEmitter = require('events');
 let Timer = require('./timer');
+let TwitchAPI = require('./twitchapi');
 
 class Channel extends EventEmitter {
     constructor(bot, name, db) {
@@ -329,23 +330,26 @@ class Channel extends EventEmitter {
             }
         } else if (type === 'join') {
             if (user === this.bot.name) {
-                this.joined = true;
-
                 // Load up this channel's chatters list.
                 // While this requires an HTTP fetch, it is still a lot faster than waiting for the initial JOIN events.
                 // See the comment above in handleEvent().
                 this.loadChattersList();
-
+                
                 // Check if the channel is live right now.
                 this.updateLive();
 
-                // And check if the channel is live continuously forever.
-                // Note that this may show wrong results for up to a couple of minutes after the channel changed modes.
-                // Twitch. ¯\_(ツ)_/¯
-                this.addTimer('$$channelupdatelive', () => this.updateLive(), 20000);
+                // If this is the first time joining, create timers
+                if (!this.joined) {
+                    // And check if the channel is live continuously forever.
+                    // Note that this may show wrong results for up to a couple of minutes after the channel changed modes.
+                    // Twitch. ¯\_(ツ)_/¯
+                    this.addTimer('$$channelupdatelive', () => this.updateLive(), 20000);
+                
+                    // Update ignored users durations.
+                    this.addTimer('$$ignored', (timer) => this.updateIgnored(timer), 1000);
+                }
 
-                // Update ignored users durations.
-                this.addTimer('$$ignored', (timer) => this.updateIgnored(timer), 1000);
+                this.joined = true;
 
                 this.emit('joined', this, event);
             }
@@ -384,9 +388,13 @@ class Channel extends EventEmitter {
     }
 
     loadChattersList() {
-        this.bot.twitchAPI.fetchChatters(this.name)
+        console.log(`#${this.name} Trying to get chatters list...`);
+
+        TwitchAPI.fetchChatters(this.name)
             .then((json) => {
                 let chatters = json.chatters;
+
+                console.log(`#${this.name} Got chatters list with ${chatters.moderators.length} mods and ${chatters.viewers.length} viewers.`);
 
                 for (let mod of chatters.moderators) {
                     this.addChatter(mod);
@@ -401,7 +409,7 @@ class Channel extends EventEmitter {
 
     updateLive() {
         if (!this.isHosting) {
-            this.bot.twitchAPI.fetchStream(this.name)
+            TwitchAPI.fetchStream(this.bot.clientid, this.name)
                 .then((json) => {
                     // Again, because the fetch might have happened before getting the host event.
                     if (json && !this.isHosting) {
