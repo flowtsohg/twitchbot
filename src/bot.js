@@ -66,7 +66,6 @@ class Bot extends EventEmitter {
 
         this.lastLineTime = 0;
 
-        this.lastReconnectTry = 0;
         this.reconnectTimeout = 5000;
     }
 
@@ -124,14 +123,7 @@ class Bot extends EventEmitter {
     }
 
     saveDB() {
-        if (fs.existsSync('./data/db.json')) {
-            if (fs.existsSync('./data/db1.json')) {
-                fs.unlinkSync('./data/db1.json');
-            }
-
-            fs.renameSync('./data/db.json', './data/db1.json')
-        }
-        
+        this.log('Saving the database');
 
         fs.writeFileSync('./data/db.json', JSON.stringify(this.db));
     }
@@ -148,13 +140,13 @@ class Bot extends EventEmitter {
         this.connecting = true;
         this.connected = false;
 
-        console.log('Trying to connect...');
+        this.log('Trying to connect...');
 
         this.socket.connect(6667, 'irc.twitch.tv', () => {
             // If more than one reconnect is attempted before success, this will be called multiple times.
             // The first time will set connected to true, and the following calls should be ignored.
             if (!this.connected) {
-                console.log('Connected');
+                this.log('Connected');
 
                 this.connecting = false;
                 this.connected = true;
@@ -168,13 +160,13 @@ class Bot extends EventEmitter {
     }
 
     onError(e) {
-        console.log(`An error occured, trying to reconnect in ${this.reconnectTimeout}`);
+        this.log(`An error occured, trying to reconnect in ${this.reconnectTimeout}`);
 
         setTimeout(() => this.reconnect(), this.reconnectTimeout);
     }
 
     onClose(e) {
-		console.log('Close', e);
+		//console.log('Close', e);
 	}
 	
 	onTimeout(e) {
@@ -405,7 +397,7 @@ class Bot extends EventEmitter {
                 this.addTimer('$$handleonemessage', () => this.handleOneMessage(), 1000 / (20 / 30));
 
                 // Save the database.
-                this.addTimer('$$savedb', () => this.saveDB(), 5000);
+                this.addTimer('$$savedb', () => this.saveDB(), 30000);
                 
                 // Sometimes, for no apparent reason, Twitch will stop communicating with the bot.
                 // This checks if more than 6 minutes passed since the last message (Twitch sends a PING every ~5 minutes).
@@ -425,7 +417,7 @@ class Bot extends EventEmitter {
     checkConnection() {
         // Did 6 minutes pass since the last message?
         if (Date.now() - this.lastLineTime > 360000) {
-            console.log('The bot seems to have disconnected for some reason. Trying to reconnect.');
+            this.log('The bot seems to have disconnected for some reason. Trying to reconnect.');
             this.reconnect();
 
         }

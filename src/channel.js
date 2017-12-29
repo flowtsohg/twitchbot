@@ -388,13 +388,13 @@ class Channel extends EventEmitter {
     }
 
     loadChattersList() {
-        console.log(`#${this.name} Trying to get chatters list...`);
+        this.log('Trying to get chatters list...');
 
         TwitchAPI.fetchChatters(this.name)
             .then((json) => {
                 let chatters = json.chatters;
 
-                console.log(`#${this.name} Got chatters list with ${chatters.moderators.length} mods and ${chatters.viewers.length} viewers.`);
+                this.log(`Got chatters list with ${chatters.moderators.length} mods and ${chatters.viewers.length} viewers.`);
 
                 for (let mod of chatters.moderators) {
                     this.addChatter(mod);
