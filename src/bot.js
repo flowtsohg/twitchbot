@@ -125,6 +125,14 @@ class Bot extends EventEmitter {
     saveDB() {
         this.log('Saving the database');
 
+        // First copy the DB.
+        // This is intentionally done with a syncronous read-write.
+        // If the database is being saved and there is an unexpected shutdown, all of the data can be lost.
+        // These operations do not affect the original file.
+        // Therefore, if something happens, the original file should still be intact.
+        // If something happens after this operation, the backup file could be used.
+        fs.writeFileSync('./data/db-backup.json', fs.readFileSync('./data/db.json', 'utf8'));
+
         fs.writeFileSync('./data/db.json', JSON.stringify(this.db));
     }
 
@@ -160,7 +168,7 @@ class Bot extends EventEmitter {
     }
 
     onError(e) {
-        this.log(`An error occured, trying to reconnect in ${this.reconnectTimeout}`);
+        this.log(`An error occured, trying to reconnect in ${this.reconnectTimeout / 1000} seconds`);
 
         setTimeout(() => this.reconnect(), this.reconnectTimeout);
     }
