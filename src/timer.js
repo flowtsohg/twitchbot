@@ -1,30 +1,27 @@
 ﻿class Timer  {
-    constructor(name, handler, timeout) {
-        this.name = name;
+    constructor(handler, timeout) {
         this.handler = handler;
         this.timeout = timeout;
-        this.intervalID = 0;
-
-        this.start();
+        this.interval = 0;
     }
 
     start() {
-        this.intervalID = setInterval(() => this.handler(this), this.timeout);
+        this.interval = setInterval(() => this.handler(this), this.timeout);
     }
 
     stop() {
-        clearInterval(this.intervalID);
-
-        this.intervalID = 0;
+        if (this.interval) {
+            clearInterval(this.interval);
+            
+            this.interval = 0;
+        }
     }
 
     setTimeout(timeout) {
         this.timeout = timeout;
 
-        if (this.intervalID) {
-            this.stop();
-            this.start();
-        }
+        this.stop();
+        this.start();
     }
 }
 

@@ -28,9 +28,9 @@ module.exports = {
             let keys = Object.keys(counters);
 
             if (keys.length) {
-                channel.chatMessage(`@${user}, ${Object.keys(counters).join(', ')}`);
+                channel.message(`@${user}, ${Object.keys(counters).join(', ')}`);
             } else {
-                channel.chatMessage(`@${user}, there are no counters.`);
+                channel.message(`@${user}, there are no counters.`);
             }
             
             return;
@@ -44,7 +44,7 @@ module.exports = {
 
         if (cmd === 'create') {
             if (counters[counterName]) {
-                channel.chatMessage(`@${user}, that counter exists already.`);
+                channel.message(`@${user}, that counter exists already.`);
             } else {
                 if (args.length < 4) {
                     return;
@@ -52,15 +52,15 @@ module.exports = {
 
                 counters[counterName] = { value: 0, response: args.slice(3).join(' ') };
 
-                channel.chatMessage(`@${user}, created counter "${counterName}".`);
+                channel.message(`@${user}, created counter "${counterName}".`);
             }
         } else if (cmd === 'delete') {
             if (counters[counterName]) {
                 delete counters[counterName];
 
-                channel.chatMessage(`@${user}, deleted counter "${counterName}".`);
+                channel.message(`@${user}, deleted counter "${counterName}".`);
             } else {
-                channel.chatMessage(`@${user}, counter "${counterName}" does not exist.`);
+                channel.message(`@${user}, counter "${counterName}" does not exist.`);
             }
         } else if (cmd === 'add') {
             let counter = counters[counterName];
@@ -74,15 +74,15 @@ module.exports = {
                     amount = parseInt(arg3.toLowerCase());
     
                 if (isNaN(amount)) {
-                    channel.chatMessage(`@${user}, '${arg1}' is not a number.`);
+                    channel.message(`@${user}, '${arg1}' is not a number.`);
                     return;
                 }
 
                 counter.value += amount;
 
-                channel.chatMessage(`@${user}, ${counter.response.replace(/\$value/g, '' + counter.value)}`);
+                channel.message(`@${user}, ${counter.response.replace(/\$value/g, '' + counter.value)}`);
             } else {
-                channel.chatMessage(`@${user}, counter "${counterName}" does not exist.`);
+                channel.message(`@${user}, counter "${counterName}" does not exist.`);
             }
         }
     }

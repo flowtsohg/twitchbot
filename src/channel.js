@@ -1,6 +1,6 @@
 ﻿let EventEmitter = require('events');
 let Timer = require('./timer');
-let TwitchAPI = require('./twitchapi');
+let tmi = require('./tmi');
 
 class Channel extends EventEmitter {
     constructor(bot, name, db) {
@@ -26,35 +26,9 @@ class Channel extends EventEmitter {
         this.users = db.users;
         this.commands = db.commands;
         this.intervals = db.intervals;
-        this.ignored = db.ignored;
 
         for (let interval of Object.values(db.intervals)) {
             this.addTimer(interval.name, () => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }), interval.timeout * 1000);
-        }
-    }
-    
-    ignore(userName, duration) {
-        this.ignored[userName] = { duration }
-    }
-
-    unignore(userName) {
-        delete this.ignored[userName];
-    }
-    
-    shouldIgnore(userName) {
-        // The streamer and bot owner cannot be ignored.
-        return !!this.ignored[userName] && userName !== this.bot.name && userName !== this.name;
-    }
-
-    updateIgnored(timer) {
-        let ignored = this.ignored;
-
-        for (let [userName, data] of Object.entries(ignored)) {
-            data.duration -= timer.timeout;
-
-            if (data.duration <= 0) {
-                this.unignore(userName);
-            }
         }
     }
 
@@ -62,7 +36,7 @@ class Channel extends EventEmitter {
         let timers = this.timers;
 
         if (!timers.has(name)) {
-            timers.set(name, new Timer(name, handler, timeout));
+            timers.set(name, new Timer(handler, timeout));
 
             return true;
         }
@@ -81,29 +55,19 @@ class Channel extends EventEmitter {
         return timers.delete(name);
     }
 
-    stopTimers() {
+    part() {
+        this.joined = false;
+
         for (let timer of this.timers.values()) {
             timer.stop();
         }
-    }
-    
-    join() {
-        this.bot.rawMessage(`JOIN #${this.name}`);
-    }
-
-    part() {
-        this.bot.rawMessage(`PART #${this.name}`);
-
-        this.joined = false;
-
-        this.stopTimers();
 
         this.emit('parted', this);
     }
 
-    chatMessage(message) {
+    message(message) {
         if (!this.muted) {
-            this.bot.rawMessage(`PRIVMSG #${this.name} :${message}`);
+            this.bot.message(this.name, message);
         }
     }
 
@@ -111,7 +75,7 @@ class Channel extends EventEmitter {
         this.bot.log(`#${this.name} ${message}`);
     }
     
-    addInterval(name, timeout, response, overwriteIfExists) {
+    addInterval(name, timeout, response) {
         let intervals = this.intervals;
 
         if (!intervals[name]) {
@@ -128,12 +92,10 @@ class Channel extends EventEmitter {
             return true;
         }
 
-        if (overwriteIfExists) {
-            let interval = intervals[name];
+        let interval = intervals[name];
 
-            interval.timeout = timeout;
-            interval.response = response;
-        }
+        interval.timeout = timeout;
+        interval.response = response;
 
         return false;
     }
@@ -156,50 +118,21 @@ class Channel extends EventEmitter {
         return this.intervals[name];
     }
 
-    addCommand(name, permitted, response, overwriteIfExists) {
-        let commands = this.commands;
-
-        if (!commands[name]) {
-            let command = {
-                name,
-                permitted,
-                response
-            };
-
-            commands[name] = command;
-
-            return true;
-        }
-
-        if (overwriteIfExists) {
-            let command = commands[name];
-
-            command.permitted = permitted;
-            command.response = response;
-        }
-
-        return false;
+    addCommand(name, permitted, response) {
+        this.db.commands[name] = { name, permitted, response };
     }
 
     removeCommand(name) {
-        let commands = this.commands;
-
-        if (commands[name]) {
-            delete commands[name];
-
-            return true;
-        }
-
-        return false;
+        delete this.db.commands[name];
     }
 
     getCommand(name) {
-        return this.bot.getCommand(name) || this.commands[name];
+        return this.bot.getCommand(name) || this.db.commands[name];
     }
 
     getUserPrivLevel(userName) {
         // Owner.
-        if (userName === this.bot.name) {
+        if (userName === this.bot.connection.name) {
             return 3;
         // Streamer.
         } else if (userName === this.name) {
@@ -213,12 +146,13 @@ class Channel extends EventEmitter {
         return 0;
     }
 
-    getPriviliegeToken(userName, command) {
+    // See if a user matches any of the tokens in a command, and thus is allowed to run it.
+    getPrivToken(userName, command) {
         for (let token of command.permitted) {
             if (token === userName) {
                 return userName;
             } else if (token === 'owner') {
-                if (userName === this.bot.name) {
+                if (userName === this.bot.connection.name) {
                     return 'owner';
                 }
             } else if (token === 'streamer') {
@@ -237,10 +171,10 @@ class Channel extends EventEmitter {
         return '';
     }
 
-    isPrivilegedForCommand(userName, command) {
+    isPrivForCommand(userName, command) {
         // See if the user matches one of the privilege tokens.
         // The bot owner is always privileged.
-        return !!this.getPriviliegeToken(userName, command) || userName === this.bot.name;
+        return !!this.getPrivToken(userName, command) || userName === this.bot.name;
     }
 
     buildCommandArgs(command, event) {
@@ -299,7 +233,7 @@ class Channel extends EventEmitter {
             }
         }
 
-        this.chatMessage(args.join(' '));
+        this.message(args.join(' '));
     }
 
     handleCommand(event) {
@@ -307,29 +241,38 @@ class Channel extends EventEmitter {
             command = this.getCommand(message.split(' ', 1)[0].toLowerCase());
         
         if (command) {
-            if (this.isPrivilegedForCommand(event.user, command)) {
+            if (this.isPrivForCommand(event.user, command)) {
                 this.runCommand({ command, event, args: this.buildCommandArgs(command, event) });
             } else {
-                this.chatMessage(`@${event.user}, you are not allowed to use that.`);
+                this.message(`@${event.user}, you are not allowed to use that.`);
             }
         }
     }
 
     handleEvent(event) {
         let type = event.type,
-            user = event.user;
+            tags = event.tags,
+            user = event.user || tags['display-name'];
 
-        // While the JOIN event should have been used to check if a user joined, it doesn't work like that.
-        // Twitch batches join/part events and sends them sometimes after a long time.
-        // This means that a user can join the channel and send a message long before the join event comes through.
-        this.addChatter(user);
+        // The ROOMSTATE event doesn't contain a user.
+        if (user) {
+            // While the JOIN event should have been used to check if a user joined, it doesn't work like that.
+            // Twitch batches join/part events and sends them sometimes after a long time.
+            // This means that a user can join the channel and send a message long before the join event comes through.
+            this.addChatter(user);
+    
+            // Another place to get mod status.
+            if (tags.mod === '1') {
+                this.mods.add(user);
+            }
+        }
 
         if (type === 'message') {
-            if (this.settings.commandsEnabled && !this.shouldIgnore(user)) {
+            if (this.settings.commandsEnabled) {
                 this.handleCommand(event);
             }
         } else if (type === 'join') {
-            if (user === this.bot.name) {
+            if (user === this.bot.connection.name) {
                 // Load up this channel's chatters list.
                 // While this requires an HTTP fetch, it is still a lot faster than waiting for the initial JOIN events.
                 // See the comment above in handleEvent().
@@ -343,10 +286,7 @@ class Channel extends EventEmitter {
                     // And check if the channel is live continuously forever.
                     // Note that this may show wrong results for up to a couple of minutes after the channel changed modes.
                     // Twitch. ¯\_(ツ)_/¯
-                    this.addTimer('$$channelupdatelive', () => this.updateLive(), 20000);
-                
-                    // Update ignored users durations.
-                    this.addTimer('$$ignored', (timer) => this.updateIgnored(timer), 1000);
+                    this.addTimer('$$channelupdatelive', () => this.updateLive(), 30000);
                 }
 
                 this.joined = true;
@@ -390,7 +330,7 @@ class Channel extends EventEmitter {
     loadChattersList() {
         this.log('Trying to get chatters list...');
 
-        TwitchAPI.fetchChatters(this.name)
+        tmi.api.getChatters(this.name)
             .then((json) => {
                 let chatters = json.chatters;
 
@@ -409,7 +349,7 @@ class Channel extends EventEmitter {
 
     updateLive() {
         if (!this.isHosting) {
-            TwitchAPI.fetchStream(this.bot.clientid, this.name)
+            tmi.api.getStream(this.bot.clientid, this.name)
                 .then((json) => {
                     // Again, because the fetch might have happened before getting the host event.
                     if (json && !this.isHosting) {
@@ -449,10 +389,14 @@ class Channel extends EventEmitter {
             return true;
         }
 
-        // This is a new user, so create it, add it to the DB, and add it to the chatters.
-        let newUser = Object.assign({}, this.settings.userDecl);
+        if (name === undefined) {
+            console.log('WANT TO ADD A CHATTER WHO IS UNDEFINED')
+            console.log('NAME', name)
+            throw new Error('NOPE');
+        }
 
-        newUser.name = name;
+        // This is a new user, so create it, add it to the DB, and add it to the chatters.
+        let newUser = { name };
 
         users[name] = newUser;
         chatters.set(name, newUser);

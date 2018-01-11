@@ -10,10 +10,10 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} add <name> <timeout> <response>`);
-            channel.chatMessage(`@${user}, usage: ${command.name} edit <name> <response>`);
-            channel.chatMessage(`@${user}, usage: ${command.name} remove <name>`);
-            channel.chatMessage(`@${user}, usage: ${command.name} list`);
+            channel.message(`@${user}, usage: ${command.name} add <name> <timeout> <response>`);
+            channel.message(`@${user}, usage: ${command.name} edit <name> <response>`);
+            channel.message(`@${user}, usage: ${command.name} remove <name>`);
+            channel.message(`@${user}, usage: ${command.name} list`);
             return;
         }
 
@@ -22,14 +22,14 @@ module.exports = {
 
         if (op === 'add') {
             if (args.length < 5) {
-                channel.chatMessage(`@${user}, usage: ${command.name} add <name> <timeout> <response>`);
+                channel.message(`@${user}, usage: ${command.name} add <name> <timeout> <response>`);
                 return;
             }
 
             let arg2 = args[2].toLowerCase();
             
             if (channel.getInterval(arg2)) {
-                channel.chatMessage(`@${user}, that interval name exists already.`);
+                channel.message(`@${user}, that interval name exists already.`);
                 return;
             }
 
@@ -37,12 +37,12 @@ module.exports = {
                 timeout = parseInt(arg3);
 
             if (isNaN(timeout)) {
-                channel.chatMessage(`@${user}, ${arg3} is not a number.`);
+                channel.message(`@${user}, ${arg3} is not a number.`);
                 return;
             }
 
             if (timeout < 0) {
-                channel.chatMessage(`@${user}, the interval must be positive.`);
+                channel.message(`@${user}, the interval must be positive.`);
                 return;
             }
 
@@ -50,10 +50,10 @@ module.exports = {
 
             channel.addInterval(arg2, timeout, arg4ToEnd);
 
-            channel.chatMessage(`@${user}, done.`);
+            channel.message(`@${user}, done.`);
         } else if (op === 'edit') {
             if (args.length < 4) {
-                channel.chatMessage(`@${user}, usage: ${command.name} edit <name> <response>.`);
+                channel.message(`@${user}, usage: ${command.name} edit <name> <response>.`);
                 return;
             }
 
@@ -61,7 +61,7 @@ module.exports = {
                 result = channel.getInterval(arg2);
 
             if (!result) {
-                channel.chatMessage(`@${user}, that interval does not exist.`);
+                channel.message(`@${user}, that interval does not exist.`);
                 return;
             }
 
@@ -69,22 +69,22 @@ module.exports = {
 
             result.response = arg3ToEnd;
 
-            channel.chatMessage(`@${user}, done.`);
+            channel.message(`@${user}, done.`);
         } else if (op === 'remove') {
             if (args.length < 3) {
-                channel.chatMessage(`@${user}, usage: ${command.name} remove <name>`);
+                channel.message(`@${user}, usage: ${command.name} remove <name>`);
                 return;
             }
 
             let arg2 = args[2].toLowerCase();
 
             if (!channel.getInterval(arg2)) {
-                channel.chatMessage(`@${user}, that interval does not exist.`);
+                channel.message(`@${user}, that interval does not exist.`);
             }
 
             channel.removeInterval(arg2);
 
-            channel.chatMessage(`@${user}, done.`);
+            channel.message(`@${user}, done.`);
         } else if (op === 'list') {
             let intervals = [];
     
@@ -92,9 +92,9 @@ module.exports = {
                 intervals.push(`${interval.name} (${interval.timeout})`);
             }
     
-            channel.chatMessage(`@${data.event.user}, ${intervals.join(', ')}.`);
+            channel.message(`@${data.event.user}, ${intervals.join(', ')}.`);
         } else {
-            channel.chatMessage(`@${user}, what is "${arg1}"?`);
+            channel.message(`@${user}, what is "${arg1}"?`);
         }
     }
 };

@@ -58,8 +58,8 @@ module.exports = {
             args = data.args;
 
         if (args.length < 3) {
-            channel.chatMessage(`@${user}, usage: ${command.name} <realm> <user> [<race>].`);
-            channel.chatMessage(`gets the solo ladder win:loss of the given user at the given realm.`);
+            channel.message(`@${user}, usage: ${command.name} <realm> <user> [<race>].`);
+            channel.message(`gets the solo ladder win:loss of the given user at the given realm.`);
             return;
         }
 
@@ -68,7 +68,7 @@ module.exports = {
             realm = parseRealm(arg1);
 
         if (realm === '') {
-            channel.chatMessage(`@${user}, '${arg1}' is not a valid realm`);
+            channel.message(`@${user}, '${arg1}' is not a valid realm`);
             return;
         }
 
@@ -88,7 +88,7 @@ module.exports = {
                         profileContainer = document.querySelector('.profileContainer');
 
                     if (!profileContainer) {
-                        channel.chatMessage(`@${user}, '${arg2}' is not a valid w3arena user.`);
+                        channel.message(`@${user}, '${arg2}' is not a valid w3arena user.`);
                         return;
                     }
 
@@ -118,7 +118,7 @@ module.exports = {
 
                     let gameSummary = leftColumn.querySelector('.gameSummary');
 
-                    channel.chatMessage(`@${user}, ${arg2} at ${realm} ${soloWins}:${soloLosses}.`);
+                    channel.message(`@${user}, ${arg2} at ${realm} ${soloWins}:${soloLosses}.`);
                 });
         } else {
             fetch(`http://classic.battle.net/war3/ladder/war3-player-profile.aspx?Gateway=${realm}&PlayerName=${arg2}`)
@@ -134,7 +134,7 @@ module.exports = {
 
                         // If the user supplied a race but it's invalid, say so.
                         if (race === '') {
-                            channel.chatMessage(`@${user}, '${arg3}' is not a valid race.`);
+                            channel.message(`@${user}, '${arg3}' is not a valid race.`);
                             return;
                         }
 
@@ -143,7 +143,7 @@ module.exports = {
                        
                         // If the row is not found, it means the player hasn't played with that race.
                         if (!row) {
-                            channel.chatMessage(`@${user}, ${arg2} at ${realm} as ${race} - 0:0.`);
+                            channel.message(`@${user}, ${arg2} at ${realm} as ${race} - 0:0.`);
                             return;
                         }
 
@@ -154,12 +154,12 @@ module.exports = {
                         // Either the user supplied 'total', or he didn't support any race.
                         // In both there is no reason to write the race.
                         if (arg3 === 'total') {
-                            channel.chatMessage(`@${user}, ${arg2} at ${realm} - ${wins}:${losses}.`);
+                            channel.message(`@${user}, ${arg2} at ${realm} - ${wins}:${losses}.`);
                         } else {
-                            channel.chatMessage(`@${user}, ${arg2} at ${realm} as ${race} - ${wins}:${losses}.`);
+                            channel.message(`@${user}, ${arg2} at ${realm} as ${race} - ${wins}:${losses}.`);
                         }
                     } else {
-                        channel.chatMessage(`@${user}, ${arg2} at ${realm} is not a valid ${realm} user.`);
+                        channel.message(`@${user}, ${arg2} at ${realm} is not a valid ${realm} user.`);
                     }
                 });
         }

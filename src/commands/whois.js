@@ -7,7 +7,7 @@ module.exports = {
             args = data.args;
 
         if (args.length < 2) {
-            channel.chatMessage(`@${user}, usage: ${command.name} <user>`);
+            channel.message(`@${user}, usage: ${command.name} <user>`);
             return;
         }
 
@@ -17,25 +17,25 @@ module.exports = {
             amount = 0;
 
         if (!realTarget) {
-            channel.chatMessage(`@${user}, I don't know who '${arg1}' is.`);
+            channel.message(`@${user}, I don't know who '${arg1}' is.`);
             return;
         }
 
         if (user === realTarget.name) {
-            channel.chatMessage(`@${user}, you are special.`);
+            channel.message(`@${user}, you are special.`);
             return;
         }
 
         let privLevel = channel.getUserPrivLevel(realTarget.name);
 
         if (privLevel === 0) {
-            channel.chatMessage(`@${realTarget.name} is a chatter.`);
+            channel.message(`@${realTarget.name} is a chatter.`);
         } else if (privLevel === 1) {
-            channel.chatMessage(`@${realTarget.name} is a moderator.`);
+            channel.message(`@${realTarget.name} is a moderator.`);
         } else if (privLevel === 2) {
-            channel.chatMessage(`@${realTarget.name} is the streamer.`);
+            channel.message(`@${realTarget.name} is the streamer.`);
         } else if (privLevel === 3) {
-            channel.chatMessage(`@${realTarget.name} is the owner.`);
+            channel.message(`@${realTarget.name} is the owner.`);
         }
     }
 };

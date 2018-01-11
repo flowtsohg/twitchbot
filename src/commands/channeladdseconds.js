@@ -4,7 +4,7 @@ module.exports = {
         let amount = parseInt(data.args[1]);
 
         if (isNaN(amount)) {
-            channel.chatMessage(`Error at ${data.command.name}: '${data.args[1]}' is not a number.`);
+            channel.message(`Error at ${data.command.name}: '${data.args[1]}' is not a number.`);
             return;
         }
 

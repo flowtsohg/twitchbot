@@ -1,13 +1,12 @@
-let Bot = require('twitchbot');
+let Bot = require('twitch-bot');
 
-// Make a new bot!
-let bot = new Bot()
-
-// Connect to Twitch using a name and an OAuth token.
+// Make a new bot and connect to Twitch using a name and an OAuth token.
 // You can get the token here: http://www.twitchapps.com/tmi/
 // In addition, if you want to use the Twitch API, you need a client ID.
 // You can get the ID from here: https://dev.twitch.tv/dashboard/apps
-bot.connect('name', 'oauth', 'clientid');
+let bot = new Bot('name', 'oauth', 'clientid');
+
+bot.connect();
 
 // When the bot is connected...
 bot.on('connected', (bot, event) => {
@@ -15,10 +14,12 @@ bot.on('connected', (bot, event) => {
 	// If you join only channels that you are a moderator on, you can send up to 100 messages.
 	// Otherwise, the maximum is 20.
 	// This is enforced by Twitch, and exceeding these limits can get you banned for 30 minutes.
-    bot.setMessageRate(100);
+	// Defaults to 20.
+    bot.connection.setMessagesPerHalfMinute(100);
 	
-	// The rate at which the database is saved, in seconds.
-    bot.setSyncRate(5);
+	// The rate at which the database is saved, in miliseconds.
+	// Defaults to once per minute.
+    bot.db.setSaveTimeout(60000);
 	
 	// Add a global command that will be accessible on all channels.
 	// First argument is the name - what the chatters will type to use the command.
@@ -27,17 +28,17 @@ bot.on('connected', (bot, event) => {
 	// The third argument is the command response.
 	// If the response starts with a dollar sign, the bot will try to match a native command.
 	// In this case, it will find the native 'commands' command that lists all of the available commands.
-    bot.addCommand('!commands', ['all'], '$commands');
+    bot.addCommand('!commands', ['all'], '$commands list');
 	
 	// Another example that calls the 'intervals' native command.
-    bot.addCommand('!intervals', ['mod', 'owner'], '$intervals');
+    bot.addCommand('!intervals', ['mod', 'owner'], '$intervals list');
 	
 	// Allow the streamer and the bot owner to mute and umute it.
-    bot.addCommand('!mute', ['streamer', 'owner'], '$mute');
-    bot.addCommand('!unmute', ['streamer', 'owner'], '$unmute');
+    bot.addCommand('!mute', ['streamer', 'owner'], '$mute 1');
+    bot.addCommand('!unmute', ['streamer', 'owner'], '$mute');
 	
 	// Join a Twitch channel with the given name.
-    let channel = bot.joinChannel('name');
+    let channel = bot.join('name');
 	
 	// Let's set some channel specific settings.
     let settings = channel.settings;
@@ -45,21 +46,13 @@ bot.on('connected', (bot, event) => {
 	// Enable commands for this channel
     settings.commandsEnabled = true;
 	
-	// Define a user declaration.
-	// By default, every user that is added to the database contains only its name.
-	// If you want to add things, define the channel's setting's userDecl.
-	// This will affect any user added after the definition.
-	// Therefore, you should probably do this earlier rather than later.
-	// In this case, I'll add two attributes that are used by many of the native commands.
-    settings.userDecl = { seconds: 0, points: 10 };
-	
-	// Used by some native commands.
+	// Used by the points native command, which defines its own defaults if you don't care.
     settings.pointsNameSingle = 'meme';
     settings.pointsNamePlural = 'memes';
 	
 	// Channel specific commands are added exactly like global commands.
     channel.addCommand('!hours', ['all'], '$hours');
-    channel.addCommand('!points', ['all'], '$points');
+    channel.addCommand('!points', ['all'], '$points get');
     channel.addCommand('!howlong', ['all'], '$howlong');
 	
 	// Channels also support intervals - commands that get executed automatically every period of time.

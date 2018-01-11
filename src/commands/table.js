@@ -1,10 +1,10 @@
 // Table
-// args: create <name>
+// args: create <name> <response>
 // args: delete <name>
 // args: list
 
 // Rows
-// args: add <table> <...>
+// args: add <table> <amount>
 // args: remove <table> <index>
 // args: get <table> <index>
 // args: rand <table>
@@ -31,9 +31,9 @@ module.exports = {
             let keys = Object.keys(tables);
 
             if (keys.length) {
-                channel.chatMessage(`@${user}, ${Object.keys(tables).join(', ')}`);
+                channel.message(`@${user}, ${Object.keys(tables).join(', ')}`);
             } else {
-                channel.chatMessage(`@${user}, there are no tables.`);
+                channel.message(`@${user}, there are no tables.`);
             }
             
             return;
@@ -47,19 +47,19 @@ module.exports = {
 
         if (tableCmd === 'create') {
             if (tables[tableName]) {
-                channel.chatMessage(`@${user}, that table exists already.`);
+                channel.message(`@${user}, that table exists already.`);
             } else {
                 tables[tableName] = { index: 1, rows: {} };
 
-                channel.chatMessage(`@${user}, created table "${tableName}".`);
+                channel.message(`@${user}, created table "${tableName}".`);
             }
         } else if (tableCmd === 'delete') {
             if (tables[tableName]) {
                 delete tables[tableName];
 
-                channel.chatMessage(`@${user}, deleted table "${tableName}".`);
+                channel.message(`@${user}, deleted table "${tableName}".`);
             } else {
-                channel.chatMessage(`@${user}, table "${tableName}" does not exist.`);
+                channel.message(`@${user}, table "${tableName}" does not exist.`);
             }
         } else if (tableCmd === 'add') {
             let table = tables[tableName];
@@ -73,9 +73,9 @@ module.exports = {
 
                 table.rows[table.index++] = `"${args.slice(3).join(' ')}" ~ ${user}`;
 
-                channel.chatMessage(`@${user}, added to "${tableName}" at index ${index}.`);
+                channel.message(`@${user}, added to "${tableName}" at index ${index}.`);
             } else {
-                channel.chatMessage(`@${user}, table "${tableName}" does not exist.`);
+                channel.message(`@${user}, table "${tableName}" does not exist.`);
             }
         } else if (tableCmd === 'remove') {
             let table = tables[tableName];
@@ -88,7 +88,7 @@ module.exports = {
                 let index = parseInt(args[3]);
                 
                 if (isNaN(index)) {
-                    channel.chatMessage(`@${user}, "${index}" is not a number.`);
+                    channel.message(`@${user}, "${index}" is not a number.`);
                     return;
                 }
 
@@ -98,12 +98,12 @@ module.exports = {
                 if (row) {
                     delete rows[index];
 
-                    channel.chatMessage(`@${user}, removed ${index} from "${tableName}".`);
+                    channel.message(`@${user}, removed ${index} from "${tableName}".`);
                 } else {
-                    channel.chatMessage(`@${user}, "${tableName}" does not have ${index}.`);
+                    channel.message(`@${user}, "${tableName}" does not have ${index}.`);
                 }
             } else {
-                channel.chatMessage(`@${user}, table "${tableName}" does not exist.`);
+                channel.message(`@${user}, table "${tableName}" does not exist.`);
             }
         } else if (tableCmd === 'get') {
             if (args.length < 4) {
@@ -113,7 +113,7 @@ module.exports = {
             let index = parseInt(args[3]);
 
             if (isNaN(index)) {
-                channel.chatMessage(`@${user}, "${index}" is not a number.`);
+                channel.message(`@${user}, "${index}" is not a number.`);
                 return;
             }
 
@@ -127,15 +127,15 @@ module.exports = {
                     let row = rows[index];
                     
                     if (row) {
-                        channel.chatMessage(`@${user}, ${row} (${index})`);
+                        channel.message(`@${user}, ${row} (${index})`);
                     } else {
-                        channel.chatMessage(`@${user}, there is no ${index} in "${tableName}".`);
+                        channel.message(`@${user}, there is no ${index} in "${tableName}".`);
                     }
                 } else {
-                    channel.chatMessage(`@${user}, "${tableName}" is empty.`);
+                    channel.message(`@${user}, "${tableName}" is empty.`);
                 }
             } else {
-                channel.chatMessage(`@${user}, table "${tableName}" does not exist.`);
+                channel.message(`@${user}, table "${tableName}" does not exist.`);
             }
         } else if (tableCmd === 'rand') {
             let table = tables[tableName];
@@ -148,14 +148,14 @@ module.exports = {
                     let index = Math.floor(Math.random() * keys.length),
                         key = keys[index];
 
-                    channel.chatMessage(`@${user}, ${rows[key]} (${key})`);
+                    channel.message(`@${user}, ${rows[key]} (${key})`);
                 } else {
-                    channel.chatMessage(`@${user}, "${tableName}" is empty.`);
+                    channel.message(`@${user}, "${tableName}" is empty.`);
                 }
 
                 return;
             } else {
-                channel.chatMessage(`@${user}, table "${tableName}" does not exist.`);
+                channel.message(`@${user}, table "${tableName}" does not exist.`);
             }
         }
     }
