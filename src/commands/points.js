@@ -379,13 +379,13 @@ module.exports = {
             let arg3 = args[3].toLowerCase();
 
             if (arg3 === 'points') {
-                users.sort((a, b) => (b.points || 0) - (a.points || 0));
+                let top = users.sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, amount).filter((user) => user.points > 0);
 
-                channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${users.slice(0, amount).map((a) => `${a.name} (${a.points || 0})`).join(', ')}.`)
+                channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.name} (${a.points || 0})`).join(', ')}.`)
             } else if (arg3 === 'eaten') {
-                users.sort((a, b) => (b.eaten || 0) - (a.eaten || 0));
+                let top = users.sort((a, b) => (b.eaten || 0) - (a.eaten || 0)).slice(0, amount).filter((user) => user.eaten > 0);
 
-                channel.message(`@${userName}, top ${amount} eaters: ${users.slice(0, amount).map((a) => `${a.name} (${a.eaten || 0})`).join(', ')}.`)
+                channel.message(`@${userName}, top ${amount} eaters: ${top.map((a) => `${a.name} (${a.eaten || 0})`).join(', ')}.`)
             } else {
                 channel.message(`@${userName}, unknown sort mode "${arg3}".`)
                 return;
