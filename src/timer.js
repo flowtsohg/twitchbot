@@ -20,8 +20,10 @@
     setTimeout(timeout) {
         this.timeout = timeout;
 
-        this.stop();
-        this.start();
+        if (this.interval) {
+            this.stop();
+            this.start();
+        }
     }
 }
 

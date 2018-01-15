@@ -1,7 +1,6 @@
 let EventEmitter = require('events');
 let net = require('net');
 let readline = require('readline');
-let fetch = require('node-fetch');
 let Timer = require('./timer');
 
 let PRIVMSG_RE = /:(\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #(\w+) :(.+)/,
@@ -88,8 +87,14 @@ class Connection extends EventEmitter {
             this.pong();
         }
 
+        // If the pong got here before the timeout, clear the timeout.
         if (data.type === 'pong') {
             clearTimeout(this.pongTimeout);
+        }
+
+        // Once the bot is connected, let it send messages.
+        if (data.type === 'connected') {
+            this.messageTimer.start();
         }
 
         this.emit('received', data);
@@ -109,6 +114,7 @@ class Connection extends EventEmitter {
         this.connecting = true;
         this.connected = false;
 
+        this.messageTimer.stop();
         this.pingTimer.stop();
 
         this.emit('connecting');
@@ -136,6 +142,7 @@ class Connection extends EventEmitter {
     reconnect(e) {
         this.connected = false;
 
+        this.messageTimer.stop();
         this.pingTimer.stop();
 
         clearTimeout(this.pongTimeout);
@@ -149,13 +156,12 @@ class Connection extends EventEmitter {
         this.connecting = false;
         this.connected = false;
         
+        this.messageTimer.stop();
         this.pingTimer.stop();
 
         clearTimeout(this.pongTimeout);
 
         this.socket.destroy();
-
-        this.messageTimer.stop();
 
         this.emit('disconnected');
     }
@@ -237,96 +243,4 @@ class Connection extends EventEmitter {
     }
 }
 
-function get(clientid, url) {
-    return fetch(url, { headers: { 'Client-ID': clientid, 'Accept': 'application/vnd.twitchtv.v5+json' } })
-        .catch((reason) => {
-            console.log(`Failed to fetch ${url}`);
-        })
-        .then((response) => {
-            return response.json();
-        })
-        .catch((reason) => {
-            console.log(`Failed to parse JSON for ${url}`);
-        });
-}
-
-function getUsers(clientid, userNames) {
-    return get(clientid, `https://api.twitch.tv/kraken/users/?login=${userNames.join(',')}`)
-        .then((usersObject) => {
-            if (usersObject) {
-                return usersObject.users;
-            }
-
-            return [];
-        });
-}
-
-function getChannel(clientid, channelName) {
-    return getUsers(clientid, [channelName])
-        .then((users) => {
-            if (users.length === 1) {
-                return get(clientid, `https://api.twitch.tv/kraken/channels/${users[0]._id}`);
-            }
-        });
-}
-
-function getStream(clientid, streamName) {
-    return getUsers(clientid, [streamName])
-        .then((users) => {
-            if (users.length === 1) {
-                return get(clientid, `https://api.twitch.tv/kraken/streams/${users[0]._id}`);
-            }
-        });
-}
-
-function getUserFollow(clientid, streamName, userName) {
-    return getUsers(clientid, [streamName, userName])
-        .then((users) => {
-            if (users.length === 2) {
-                return get(clientid, `https://api.twitch.tv/kraken/users/${users[1]._id}/follows/channels/${users[0]._id}`);
-            }
-        });
-}
-
-function getUserSubscription(clientid, streamName, userName) {
-    return getUsers(clientid, [streamName, userName])
-        .then((users) => {
-            if (users.length === 2) {
-                return get(clientid, `https://api.twitch.tv/kraken/users/${users[1]._id}/subscriptions/${users[0]._id}`);
-            }
-        });
-}
-
-function getUserEmotes(clientid, userName) {
-    return getUsers(qclientid, [userName])
-        .then((users) => {
-            return get(clientid, `https://api.twitch.tv/kraken/users/${users[0]._id}/emotes`);
-        });
-}
-    
-function getChatters(streamName) {
-    return fetch(`https://tmi.twitch.tv/group/user/${streamName}/chatters`)
-        .catch((reason) => {
-            console.log(`Failed to fetch https://tmi.twitch.tv/group/user/${streamName}/chatters`);
-        })
-        .then((response) => {
-            return response.json();
-        })
-        .catch((reason) => {
-            console.log(`Failed to parse JSON for https://tmi.twitch.tv/group/user/${streamName}/chatters`);
-        });
-}
-
-module.exports = {
-    Connection,
-    api: {
-        get,
-        getUsers,
-        getChannel,
-        getStream,
-        getUserFollow,
-        getUserSubscription,
-        getUserEmotes,
-        getChatters
-    }
-};
+module.exports = Connection;

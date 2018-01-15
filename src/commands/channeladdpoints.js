@@ -1,10 +1,11 @@
 module.exports = {
     name: 'channeladdpoints',
     handler: function (channel, data) {
-        let amount = parseInt(data.args[1]);
+        let arg0 = data.args[0],
+            amount = parseInt(arg0);
 
         if (isNaN(amount)) {
-            channel.message(`Error at ${data.command.name}: '${data.args[1]}' is not a number.`);
+            channel.message(`Error at ${data.command.name}: "${arg0}" is not a number.`);
             return;
         }
 

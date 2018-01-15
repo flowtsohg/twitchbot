@@ -57,14 +57,14 @@ module.exports = {
             user = data.event.user,
             args = data.args;
 
-        if (args.length < 3) {
+        if (args.length < 2) {
             channel.message(`@${user}, usage: ${command.name} <realm> <user> [<race>].`);
             channel.message(`gets the solo ladder win:loss of the given user at the given realm.`);
             return;
         }
 
-        let arg1 = args[1].toLowerCase(),
-            arg2 = args[2],
+        let arg1 = args[0].toLowerCase(),
+            arg2 = args[1],
             realm = parseRealm(arg1);
 
         if (realm === '') {
@@ -74,8 +74,8 @@ module.exports = {
 
         let arg3 = 'total';
 
-        if (args.length > 3) {
-            arg3 = args[3].toLowerCase();
+        if (args.length > 2) {
+            arg3 = args[2].toLowerCase();
         }
 
         if (realm === 'w3arena') {

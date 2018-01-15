@@ -1,24 +1,23 @@
-// args: <user-autocomplete>
+// <user>
 module.exports = {
     name: 'autocomplete',
     handler: function (channel, data) {
-        let command = data.command,
-            user = data.event.user,
+        let userName = data.event.user,
             args = data.args;
 
-        if (args.length < 2) {
-            channel.message(`@${user}, usage: ${command.name} <user>`);
-            channel.message(`@${user}, takes a partial name of a user, and tries to autocomplete it.`);
+        if (args.length < 1) {
+            channel.message(`@${userName}, usage: ${data.command.name} <user>`);
+            channel.message(`@${userName}, takes a partial name of a user, and tries to autocomplete it.`);
             return;
         }
 
-        let name = args[1],
-            target = channel.getUser(name.toLowerCase(), true);
+        let targetName = args[0],
+            target = channel.getUser(targetName.toLowerCase(), true);
 
         if (target) {
-            channel.message(`@${user}, I see '${name}' as '${target.name}'.`);
+            channel.message(`@${userName}, I see "${targetName}" as ${target.name}.`);
         } else {
-            channel.message(`@${user}, I don't know who '${name}' is.`);
+            channel.message(`@${userName}, I don't know who "${targetName}" is.`);
         }
     }
 };

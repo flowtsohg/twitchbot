@@ -1,5 +1,5 @@
 let EventEmitter = require('events');
-let tmi = require('./tmi');
+let Connection = require('./connection');
 let Channel = require('./channel');
 let nativeCommands = require('./commands/');
 let Logger = require('./logger');
@@ -14,7 +14,7 @@ class Bot extends EventEmitter {
         this.db = new DB('./data', { commands: {}, channels: {} });
         this.db.on('saved', () => this.log('Saved the database'));
 
-        this.connection = new tmi.Connection(name, oauth);
+        this.connection = new Connection(name, oauth);
         this.connection.on('connecting', () => this.log('Trying to connect...'));
         this.connection.on('connected', () => this.log('Connected'));
         this.connection.on('reconnecting', (timeout) => this.log(`An error occured, trying to reconnect in ${timeout / 1000} seconds`));

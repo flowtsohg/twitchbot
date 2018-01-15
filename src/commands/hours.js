@@ -1,4 +1,3 @@
-// args:
 module.exports = {
     name: 'hours',
     handler: function (channel, data) {

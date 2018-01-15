@@ -3,39 +3,37 @@ module.exports = {
     name: 'whois',
     handler: function (channel, data) {
         let command = data.command,
-            user = data.event.user,
+            userName = data.event.user,
             args = data.args;
 
-        if (args.length < 2) {
-            channel.message(`@${user}, usage: ${command.name} <user>`);
+        if (args.length < 1) {
+            channel.message(`@${userName}, usage: ${command.name} <user>`);
             return;
         }
 
-        let realUser = channel.getUser(user),
-            arg1 = args[1],
-            realTarget = channel.getUser(arg1.toLowerCase(), true),
-            amount = 0;
+        let arg0 = args[0],
+            target = channel.getUser(arg0.toLowerCase(), true);
 
-        if (!realTarget) {
-            channel.message(`@${user}, I don't know who '${arg1}' is.`);
+        if (!target) {
+            channel.message(`@${userName}, I don't know who '${arg0}' is.`);
             return;
         }
 
-        if (user === realTarget.name) {
-            channel.message(`@${user}, you are special.`);
+        if (userName === target.name) {
+            channel.message(`@${userName}, you are special.`);
             return;
         }
 
-        let privLevel = channel.getUserPrivLevel(realTarget.name);
+        let privLevel = channel.getUserPrivLevel(target.name);
 
         if (privLevel === 0) {
-            channel.message(`@${realTarget.name} is a chatter.`);
+            channel.message(`@${target.name} is a chatter.`);
         } else if (privLevel === 1) {
-            channel.message(`@${realTarget.name} is a moderator.`);
+            channel.message(`@${target.name} is a moderator.`);
         } else if (privLevel === 2) {
-            channel.message(`@${realTarget.name} is the streamer.`);
+            channel.message(`@${target.name} is the streamer.`);
         } else if (privLevel === 3) {
-            channel.message(`@${realTarget.name} is the owner.`);
+            channel.message(`@${target.name} is the owner.`);
         }
     }
 };

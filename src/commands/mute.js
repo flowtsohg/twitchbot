@@ -1,9 +1,8 @@
-// args:
+// [<any>]
 module.exports = {
     name: 'mute',
     handler: function (channel, data) {
-        console.log(data.args);
-        if (data.args.length > 1) {
+        if (data.args.length > 0) {
             channel.muted = true;
         } else {
             channel.muted = false;

@@ -1,6 +1,6 @@
 ﻿let EventEmitter = require('events');
 let Timer = require('./timer');
-let tmi = require('./tmi');
+let twitchApi = require ('./twitchapi');
 
 class Channel extends EventEmitter {
     constructor(bot, name, db) {
@@ -36,7 +36,11 @@ class Channel extends EventEmitter {
         let timers = this.timers;
 
         if (!timers.has(name)) {
-            timers.set(name, new Timer(handler, timeout));
+            let timer = new Timer(handler, timeout)
+        
+            timer.start();
+
+            timers.set(name, timer);
 
             return true;
         }
@@ -222,13 +226,19 @@ class Channel extends EventEmitter {
     }
 
     runCommand(data) {
-        let args = data.args;
+        let args = data.args,
+            arg0 = args[0];
 
-        if (args[0].startsWith('$')) {
-            let nativeCommand = this.bot.nativeCommands.get(args[0].substring(1));
-            
-            if (nativeCommand) {
-                nativeCommand(this, data);
+        if (arg0.startsWith('$')) {
+            let command = this.bot.nativeCommands.get(arg0.substring(1));
+
+            if (command) {
+                // Remove the native command name.
+                args.shift();
+
+                // Run the command.
+                command(this, data);
+                
                 return;
             }
         }
@@ -330,7 +340,7 @@ class Channel extends EventEmitter {
     loadChattersList() {
         this.log('Trying to get chatters list...');
 
-        tmi.api.getChatters(this.name)
+        twitchApi.getChatters(this.name)
             .then((json) => {
                 let chatters = json.chatters;
 
@@ -349,7 +359,7 @@ class Channel extends EventEmitter {
 
     updateLive() {
         if (!this.isHosting) {
-            tmi.api.getStream(this.bot.clientid, this.name)
+            twitchApi.getStream(this.bot.clientid, this.name)
                 .then((json) => {
                     // Again, because the fetch might have happened before getting the host event.
                     if (json && !this.isHosting) {

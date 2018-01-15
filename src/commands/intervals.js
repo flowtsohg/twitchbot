@@ -6,85 +6,79 @@ module.exports = {
     name: 'intervals',
     handler: function (channel, data) {
         let command = data.command,
-            user = data.event.user,
+            userName = data.event.user,
             args = data.args;
 
-        if (args.length < 2) {
-            channel.message(`@${user}, usage: ${command.name} add <name> <timeout> <response>`);
-            channel.message(`@${user}, usage: ${command.name} edit <name> <response>`);
-            channel.message(`@${user}, usage: ${command.name} remove <name>`);
-            channel.message(`@${user}, usage: ${command.name} list`);
+        if (args.length < 1) {
+            channel.message(`@${userName}, usage: ${command.name} add <name> <timeout> <response>`);
+            channel.message(`@${userName}, usage: ${command.name} edit <name> <response>`);
+            channel.message(`@${userName}, usage: ${command.name} remove <name>`);
+            channel.message(`@${userName}, usage: ${command.name} list`);
             return;
         }
 
-        let arg1 = args[1],
-        op = arg1.toLowerCase();
+        let op = args[0].toLowerCase();
 
         if (op === 'add') {
-            if (args.length < 5) {
-                channel.message(`@${user}, usage: ${command.name} add <name> <timeout> <response>`);
+            if (args.length < 4) {
+                channel.message(`@${userName}, usage: ${command.name} add <name> <timeout> <response>`);
                 return;
             }
 
-            let arg2 = args[2].toLowerCase();
+            let intervalName = args[1].toLowerCase();
             
-            if (channel.getInterval(arg2)) {
-                channel.message(`@${user}, that interval name exists already.`);
+            if (channel.getInterval(intervalName)) {
+                channel.message(`@${userName}, that interval name exists already.`);
                 return;
             }
 
-            let arg3 = args[3],
-                timeout = parseInt(arg3);
+            let arg2 = args[2],
+                timeout = parseInt(arg2);
 
             if (isNaN(timeout)) {
-                channel.message(`@${user}, ${arg3} is not a number.`);
+                channel.message(`@${userName}, "${arg2}" is not a number.`);
                 return;
             }
 
             if (timeout < 0) {
-                channel.message(`@${user}, the interval must be positive.`);
+                channel.message(`@${userName}, the interval must be positive.`);
                 return;
             }
 
-            let arg4ToEnd = args.slice(4).join(' ');
+            channel.addInterval(intervalName, timeout, args.slice(3).join(' '));
 
-            channel.addInterval(arg2, timeout, arg4ToEnd);
-
-            channel.message(`@${user}, done.`);
+            channel.message(`@${userName}, done.`);
         } else if (op === 'edit') {
-            if (args.length < 4) {
-                channel.message(`@${user}, usage: ${command.name} edit <name> <response>.`);
+            if (args.length < 3) {
+                channel.message(`@${userName}, usage: ${command.name} edit <name> <response>.`);
                 return;
             }
 
-            let arg2 = args[2].toLowerCase(),
-                result = channel.getInterval(arg2);
+            let result = channel.getInterval(args[1].toLowerCase());
 
             if (!result) {
-                channel.message(`@${user}, that interval does not exist.`);
+                channel.message(`@${userName}, that interval does not exist.`);
                 return;
             }
 
-            let arg3ToEnd = args.slice(3).join(' ');
+            result.response = args.slice(2).join(' ');
 
-            result.response = arg3ToEnd;
-
-            channel.message(`@${user}, done.`);
+            channel.message(`@${userName}, done.`);
         } else if (op === 'remove') {
-            if (args.length < 3) {
-                channel.message(`@${user}, usage: ${command.name} remove <name>`);
+            if (args.length < 2) {
+                channel.message(`@${userName}, usage: ${command.name} remove <name>`);
                 return;
             }
 
-            let arg2 = args[2].toLowerCase();
+            let intervalName = args[1].toLowerCase();
 
-            if (!channel.getInterval(arg2)) {
-                channel.message(`@${user}, that interval does not exist.`);
+            if (!channel.getInterval(intervalName)) {
+                channel.message(`@${userName}, that interval does not exist.`);
             }
 
-            channel.removeInterval(arg2);
+            channel.removeInterval(intervalName);
 
-            channel.message(`@${user}, done.`);
+            channel.message(`@${userName}, done.`);
         } else if (op === 'list') {
             let intervals = [];
     
@@ -92,9 +86,9 @@ module.exports = {
                 intervals.push(`${interval.name} (${interval.timeout})`);
             }
     
-            channel.message(`@${data.event.user}, ${intervals.join(', ')}.`);
+            channel.message(`@${userName}, ${intervals.join(', ')}.`);
         } else {
-            channel.message(`@${user}, what is "${arg1}"?`);
+            channel.message(`@${userName}, what is "${op}"?`);
         }
     }
 };

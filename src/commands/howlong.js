@@ -1,19 +1,18 @@
-let tmi = require('../tmi');
+let twitchApi = require ('../twitchapi');
 
-// args:
 module.exports = {
     name: 'howlong',
     handler: function (channel, data) {
-        let user = data.event.user;
+        let userName = data.event.user;
 
-        if (channel.name === user) {
-            channel.message(`@${user} is following ${user} since birth.`);
+        if (channel.name === userName) {
+            channel.message(`@${userName} is following ${userName} since birth.`);
             return;
         }
 
-        tmi.api.getUserFollow(channel.bot.clientid, channel.name, user)
+        twitchApi.getUserFollow(channel.bot.clientid, channel.name, userName)
             .catch((reason) => {
-                channel.message(`@${user} is not following ${channel.name}.`);
+                channel.message(`@${userName} is not following ${channel.name}.`);
             })
             .then((json) => {
                 let followDate = new Date(json.created_at),
@@ -46,7 +45,7 @@ module.exports = {
                     parts.push(`${minutes} minutes`);
                 }
 
-                channel.message(`@${user} has been following ${channel.name} for ${parts.join(', ')}.`);
+                channel.message(`@${userName} has been following #${channel.name} for ${parts.join(', ')}.`);
             })
     }
 };

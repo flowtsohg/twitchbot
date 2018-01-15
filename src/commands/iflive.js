@@ -1,5 +1,3 @@
-// args: 'command'-autocomplete' <command> <permitted> <response>
-// args: 'interval'-autocomplete' <name> <interval> <response>
 module.exports = {
     name: 'iflive',
     handler: function (channel, data) {
