@@ -22,6 +22,8 @@ class Connection extends EventEmitter {
         this.connecting = false;
         this.connected = false;
         this.reconnectTimeout = 5000;
+        this.lastConnection = 0;
+        this.reconnections = 0;
 
         this.socket = new net.Socket();
         this.socket.setEncoding('utf8');
@@ -125,6 +127,7 @@ class Connection extends EventEmitter {
             if (!this.connected) {
                 this.connecting = false;
                 this.connected = true;
+                this.lastConnection = Date.now();
 
                 this.send(`PASS ${this.oauth}`);
                 this.send(`NICK ${this.name}`);
@@ -146,6 +149,8 @@ class Connection extends EventEmitter {
         this.pingTimer.stop();
 
         clearTimeout(this.pongTimeout);
+
+        this.reconnections += 1;
 
         setTimeout(() => this.connect(), this.reconnectTimeout);
 

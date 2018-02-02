@@ -13,7 +13,7 @@ class Bot extends EventEmitter {
 
         this.db = new DB('./data', { commands: {}, channels: {} });
         this.db.on('saved', () => this.log('Saved the database'));
-
+        
         this.connection = new Connection(name, oauth);
         this.connection.on('connecting', () => this.log('Trying to connect...'));
         this.connection.on('connected', () => this.log('Connected'));
@@ -36,6 +36,7 @@ class Bot extends EventEmitter {
     }
 
     connect() {
+        this.db.connect();
         this.connection.connect();
     }
 

@@ -189,12 +189,12 @@ module.exports = {
 
                 channel.message(`@${userName} won ${amount * 2} ${singleOrPlural} and now has ${user.points} (${rand}).`);
             } else {
-                realUser.points += amount * 3;
+                user.points += amount * 3;
 
                 channel.message(`@${userName} won ${amount * 3} ${singleOrPlural} and now has ${user.points} (${rand}).`);
             }
         } else if (op === 'pull') {
-            // pull <N-slots> <M-options> <multiplier1> <multiplier2> ... <multiplierN-1> <option1> <option2> ... <optionM> <amount|all>
+            // pull <N-slots> <M-options> <multiplier1> <multiplier2> ... <multiplierN> <option1> <option2> ... <optionM> <amount|all>
             if (args.length < 6) {
                 return;
             }
@@ -254,7 +254,7 @@ module.exports = {
             let results = [];
 
             for (let i = 0; i < slotCount; i++) {
-                results[i] = options[Math.floor(Math.random() * slotCount)];
+                results[i] = options[Math.floor(Math.random() * optionCount)];
             }
 
             let map = {};
