@@ -27,7 +27,7 @@ module.exports = {
 
             let intervalName = args[1].toLowerCase();
             
-            if (channel.getInterval(intervalName)) {
+            if (channel.intervals.get(intervalName)) {
                 channel.message(`@${userName}, that interval name exists already.`);
                 return;
             }
@@ -45,7 +45,7 @@ module.exports = {
                 return;
             }
 
-            channel.addInterval(intervalName, timeout, args.slice(3).join(' '));
+            channel.intervals.add(intervalName, timeout, args.slice(3).join(' '));
 
             channel.message(`@${userName}, done.`);
         } else if (op === 'edit') {
@@ -54,7 +54,7 @@ module.exports = {
                 return;
             }
 
-            let result = channel.getInterval(args[1].toLowerCase());
+            let result = channel.intervals.get(args[1].toLowerCase());
 
             if (!result) {
                 channel.message(`@${userName}, that interval does not exist.`);
@@ -72,17 +72,18 @@ module.exports = {
 
             let intervalName = args[1].toLowerCase();
 
-            if (!channel.getInterval(intervalName)) {
+            if (!channel.intervals.get(intervalName)) {
                 channel.message(`@${userName}, that interval does not exist.`);
+                return;
             }
 
-            channel.removeInterval(intervalName);
+            channel.intervals.remove(intervalName);
 
             channel.message(`@${userName}, done.`);
         } else if (op === 'list') {
             let intervals = [];
     
-            for (let interval of Object.values(channel.intervals)) {
+            for (let interval of Object.values(channel.intervals.intervals)) {
                 intervals.push(`${interval.name} (${interval.timeout})`);
             }
     

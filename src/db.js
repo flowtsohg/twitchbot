@@ -25,6 +25,9 @@ class DB extends EventEmitter {
 
         if (!db) {
             db = initObject || {};
+
+            // Create the file if it doesn't exist.
+            fs.writeFileSync(this.path, JSON.stringify(db));
         }
 
         this.db = db;

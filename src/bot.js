@@ -4,6 +4,7 @@ let Channel = require('./channel');
 let nativeCommands = require('./commands/');
 let Logger = require('./logger');
 let DB = require('./db');
+let Commands = require('./commands');
 
 class Bot extends EventEmitter {
     constructor(name, oauth, clientid) {
@@ -11,9 +12,11 @@ class Bot extends EventEmitter {
 
         this.logger = new Logger('./logs');
 
-        this.db = new DB('./data', { commands: {}, channels: {} });
+        this.db = new DB('./data', { commands: {}, aliases: {}, channels: {} });
         this.db.on('saved', () => this.log('Saved the database'));
         
+        this.commands = new Commands(this.db.db);
+
         this.connection = new Connection(name, oauth);
         this.connection.on('connecting', () => this.log('Trying to connect...'));
         this.connection.on('connected', () => this.log('Connected'));
@@ -21,9 +24,11 @@ class Bot extends EventEmitter {
         this.connection.on('received', (data) => this.received(data));
         this.connection.on('sent', (data) => this.sent(data));
         
+        // Needed for Twitch API calls.
         this.clientid = clientid;
 
         this.channels = new Map();
+
         this.nativeCommands = new Map();
 
         for (let command of nativeCommands) {
@@ -68,6 +73,7 @@ class Bot extends EventEmitter {
                         name,
                         settings: { commandsEnabled: false },
                         commands: {},
+                        aliases: {},
                         intervals: {},
                         users: {}
                     };
@@ -134,18 +140,6 @@ class Bot extends EventEmitter {
         }
 
         this.emit(event.type, this, event);
-    }
-
-    addCommand(name, permitted, response) {
-        this.db.db.commands[name] = { name, permitted, response };
-    }
-
-    removeCommand(name) {
-        delete this.db.db.commands[name];
-    }
-
-    getCommand(name) {
-        return this.db.db.commands[name];
     }
 }
 

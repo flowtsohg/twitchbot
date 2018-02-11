@@ -53,7 +53,7 @@ module.exports = {
                 let target = channel.getUser(lowerArg1, true);
     
                 if (!target) {
-                    channel.message(`@${userName}, I don't know who '${arg1}' is.`);
+                    channel.message(`@${userName}, I don't know who "${arg1}" is.`);
                     return;
                 }
 
@@ -102,7 +102,7 @@ module.exports = {
                 target = channel.getUser(targetName.toLowerCase(), true);
 
             if (!target) {
-                channel.message(`@${userName}, I don't know who '${targetName}' is.`);
+                channel.message(`@${userName}, I don't know who "${targetName}" is.`);
                 return;
             }
 
@@ -214,7 +214,14 @@ module.exports = {
             let multipliers = [];
 
             for (let i = 0; i < slotCount - 1; i++) {
-                multipliers[i] = parseFloat(args[3 + i]);
+                let value = parseFloat(args[3 + i]);
+
+                if (isNaN(value)) {
+                    channel.message(`@${userName}, "${args[3 + i]}" is not a number.`);
+                    return;
+                }
+
+                multipliers[i] = value;
             }
 
             let options = [];

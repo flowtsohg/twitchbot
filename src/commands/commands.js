@@ -27,7 +27,7 @@ module.exports = {
 
             let commandName = args[1].toLowerCase();
             
-            if (channel.getCommand(commandName)) {
+            if (channel.commands.get(commandName)) {
                 channel.message(`@${userName}, that command name exists already.`);
                 return;
             }
@@ -70,7 +70,7 @@ module.exports = {
                 permitted[0] = target.name;
             }
 
-            channel.addCommand(commandName, permitted, args.slice(3).join(' '));
+            channel.commands.add(commandName, permitted, args.slice(3).join(' '));
 
             channel.message(`@${userName}, done.`);
         } else if (op === 'edit') {
@@ -80,7 +80,7 @@ module.exports = {
             }
 
             let arg1 = args[1].toLowerCase(),
-                result = channel.getCommand(arg1);
+                result = channel.commands.get(arg1);
 
             if (!result) {
                 channel.message(`@${userName}, that command does not exist.`);
@@ -97,12 +97,12 @@ module.exports = {
 
             let arg1 = args[1].toLowerCase();
 
-            if (!channel.getCommand(arg1)) {
+            if (!channel.commands.get(arg1)) {
                 channel.message(`@${userName}, that command does not exist.`);
                 return;
             }
 
-            channel.removeCommand(arg1);
+            channel.commands.remove(arg1);
 
             channel.message(`@${userName}, done.`);
         } else if (op === 'list') {
@@ -112,7 +112,7 @@ module.exports = {
                 privOwner = [],
                 privSpecific = [];
 
-            for (let command of [...Object.values(channel.bot.db.db.commands), ...Object.values(channel.db.commands)]) {
+            for (let command of [...Object.values(channel.bot.commands.commands), ...Object.values(channel.commands.commands)]) {
                 let token = channel.getPrivToken(userName, command);
 
                 if (token === 'all') {

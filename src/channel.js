@@ -1,6 +1,8 @@
 ﻿let EventEmitter = require('events');
 let Timer = require('./timer');
 let twitchApi = require ('./twitchapi');
+let Commands = require('./commands');
+let Intervals = require('./intervals');
 
 class Channel extends EventEmitter {
     constructor(bot, name, db) {
@@ -21,50 +23,22 @@ class Channel extends EventEmitter {
         this.chatters = new Map();
         this.mods = new Set();
 
-        this.timers = new Map();
+        this.liveUpdater = new Timer(() => this.updateLive(), 30000);
 
         this.users = db.users;
-        this.commands = db.commands;
-        this.intervals = db.intervals;
 
-        for (let interval of Object.values(db.intervals)) {
-            this.addTimer(interval.name, () => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }), interval.timeout * 1000);
-        }
-    }
+        this.commands = new Commands(db, bot.commands);
 
-    addTimer(name, handler, timeout) {
-        let timers = this.timers;
-
-        if (!timers.has(name)) {
-            let timer = new Timer(handler, timeout)
-        
-            timer.start();
-
-            timers.set(name, timer);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    removeTimer(name) {
-        let timers = this.timers,
-            timer = timers.get(name);
-
-        if (timer) {
-            timer.stop();
-        }
-
-        return timers.delete(name);
+        this.intervals = new Intervals(db);
+        this.intervals.on('fired', (interval) => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }));
     }
 
     part() {
         this.joined = false;
 
-        for (let timer of this.timers.values()) {
-            timer.stop();
-        }
+        this.liveUpdater.stop();
+
+        this.intervals.stop();
 
         this.emit('parted', this);
     }
@@ -77,61 +51,6 @@ class Channel extends EventEmitter {
 
     log(message) {
         this.bot.log(`#${this.name} ${message}`);
-    }
-    
-    addInterval(name, timeout, response) {
-        let intervals = this.intervals;
-
-        if (!intervals[name]) {
-            let interval = {
-                name,
-                timeout,
-                response
-            };
-
-            intervals[name] = interval;
-
-            this.addTimer(interval.name, () => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }), timeout * 1000);
-
-            return true;
-        }
-
-        let interval = intervals[name];
-
-        interval.timeout = timeout;
-        interval.response = response;
-
-        return false;
-    }
-
-    removeInterval(name) {
-        let intervals = this.intervals;
-
-        if (intervals[name]) {
-            delete intervals[name];
-
-            this.removeTimer(name);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    getInterval(name) {
-        return this.intervals[name];
-    }
-
-    addCommand(name, permitted, response) {
-        this.db.commands[name] = { name, permitted, response };
-    }
-
-    removeCommand(name) {
-        delete this.db.commands[name];
-    }
-
-    getCommand(name) {
-        return this.bot.getCommand(name) || this.db.commands[name];
     }
 
     getUserPrivLevel(userName) {
@@ -248,7 +167,7 @@ class Channel extends EventEmitter {
 
     handleCommand(event) {
         let message = event.data,
-            command = this.getCommand(message.split(' ', 1)[0].toLowerCase());
+            command = this.commands.get(message.split(' ', 1)[0].toLowerCase());
         
         if (command) {
             if (this.isPrivForCommand(event.user, command)) {
@@ -291,12 +210,12 @@ class Channel extends EventEmitter {
                 // Check if the channel is live right now.
                 this.updateLive();
 
-                // If this is the first time joining, create timers
+                // If this is the first time joining.
                 if (!this.joined) {
                     // And check if the channel is live continuously forever.
                     // Note that this may show wrong results for up to a couple of minutes after the channel changed modes.
                     // Twitch. ¯\_(ツ)_/¯
-                    this.addTimer('$$channelupdatelive', () => this.updateLive(), 30000);
+                    this.liveUpdater.start();
                 }
 
                 this.joined = true;
@@ -337,49 +256,42 @@ class Channel extends EventEmitter {
         this.emit(type, this, event);
     }
 
-    loadChattersList() {
+    async loadChattersList() {
         this.log('Trying to get chatters list...');
 
-        twitchApi.getChatters(this.name)
-            .then((json) => {
-                let chatters = json.chatters;
+        let json = await twitchApi.getChatters(this.name);
 
-                this.log(`Got chatters list with ${chatters.moderators.length} mods and ${chatters.viewers.length} viewers.`);
+        if (json) {
+            let chatters = json.chatters;
 
-                for (let mod of chatters.moderators) {
-                    this.addChatter(mod);
-                    this.mods.add(mod);
-                }
+            this.log(`Got chatters list with ${chatters.moderators.length} mods and ${chatters.viewers.length} viewers.`);
 
-                for (let viewer of chatters.viewers) {
-                    this.addChatter(viewer);
-                }
-            });
+            for (let mod of chatters.moderators) {
+                this.addChatter(mod);
+                this.mods.add(mod);
+            }
+
+            for (let viewer of chatters.viewers) {
+                this.addChatter(viewer);
+            }
+        }
     }
 
-    updateLive() {
+    async updateLive() {
         if (!this.isHosting) {
-            twitchApi.getStream(this.bot.clientid, this.name)
-                .then((json) => {
-                    // Again, because the fetch might have happened before getting the host event.
-                    if (json && !this.isHosting) {
-                        let isLive = this.isLive;
+            let json = await twitchApi.getStream(this.bot.clientid, this.name);
 
-                        if (json.stream) {
-                            this.isLive = true;
+            // Check if hosting again, because the fetch might have happened before getting the host event.
+            if (json && !this.isHosting) {
+                let isLive = !!json.stream;
 
-                            if (!isLive) {
-                                this.emit('live', this, json.stream);
-                            }
-                        } else {
-                            this.isLive = false;
+                if (isLive !== this.isLive) {
+                    this.isLive = isLive;
 
-                            if (isLive) {
-                                this.emit('live', this);
-                            }
-                        }
-                    }
-                })
+                    // If live the stream object is given, otherwise it will be undefined.
+                    this.emit('live', this, json.stream)
+                }
+            }
         }
     }
 
@@ -397,12 +309,6 @@ class Channel extends EventEmitter {
         if (user) {
             chatters.set(name, user);
             return true;
-        }
-
-        if (name === undefined) {
-            console.log('WANT TO ADD A CHATTER WHO IS UNDEFINED')
-            console.log('NAME', name)
-            throw new Error('NOPE');
         }
 
         // This is a new user, so create it, add it to the DB, and add it to the chatters.
