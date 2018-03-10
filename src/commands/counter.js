@@ -8,7 +8,12 @@ function buildResponse(args, value) {
 // list
 module.exports = {
     name: 'counter',
-    handler: function (channel, data) {
+
+    eachChannel(channel) {
+        channel.counters = {};
+    },
+    
+    handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
@@ -19,10 +24,6 @@ module.exports = {
             channel.message(`@${userName}, usage: ${command.name} add <name> <amount> <response>`);
             channel.message(`@${userName}, usage: ${command.name} list`);
             return;
-        }
-
-        if (!channel.db.counters) {
-            channel.db.counters = {};
         }
 
         let op = args[0].toLowerCase(),

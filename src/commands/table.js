@@ -11,7 +11,12 @@ function buildResponse(args, value, index) {
 // list
 module.exports = {
     name: 'table',
-    handler: function (channel, data) {
+    
+    eachChannel(channel) {
+        channel.tables = {};
+    },
+
+    handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
@@ -23,10 +28,6 @@ module.exports = {
         }
 
         let op = args[0].toLowerCase();
-
-        if (!channel.db.tables) {
-            channel.db.tables = {};
-        }
 
         let tables = channel.db.tables;
 
@@ -172,8 +173,6 @@ module.exports = {
                 if (keys.length) {
                     let index = Math.floor(Math.random() * keys.length),
                         key = keys[index];
-
-                    console.log('TABLE', index, key, rows[key]);
 
                     channel.message(`@${userName}, ${buildResponse(args.slice(2), rows[key], key)}`);
                 } else {

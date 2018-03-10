@@ -2,9 +2,11 @@
 // edit <name> <response>
 // remove <name>
 // list
+// inspect <name>
 module.exports = {
     name: 'commands',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
@@ -60,7 +62,7 @@ module.exports = {
                     return;
                 }
             } else {
-                let target = channel.getUser(arg2.toLowerCase(), true);
+                let target = channel.users.get(arg2, true);
 
                 if (!target) {
                     channel.message(`@${userName}, I don't know who '${arg2}' is.`);
@@ -80,7 +82,7 @@ module.exports = {
             }
 
             let arg1 = args[1].toLowerCase(),
-                result = channel.commands.get(arg1);
+                result = channel.commands.get(arg1, true);
 
             if (!result) {
                 channel.message(`@${userName}, that command does not exist.`);
@@ -97,7 +99,7 @@ module.exports = {
 
             let arg1 = args[1].toLowerCase();
 
-            if (!channel.commands.get(arg1)) {
+            if (!channel.commands.get(arg1, true)) {
                 channel.message(`@${userName}, that command does not exist.`);
                 return;
             }
@@ -105,6 +107,21 @@ module.exports = {
             channel.commands.remove(arg1);
 
             channel.message(`@${userName}, done.`);
+        } else if (op === 'inspect') {
+            if (args.length < 2) {
+                channel.message(`@${userName}, usage: ${command.name} remove <name>`);
+                return;
+            }
+
+            let arg1 = args[1],
+                command = channel.commands.get(arg1.toLowerCase(), true);
+
+            if (!command) {
+                channel.message(`@${userName}, that command does not exist.`);
+                return;
+            }
+
+            channel.message(`@${userName} ${command.response}`);
         } else if (op === 'list') {
             let privAll = [],
                 privMod = [],

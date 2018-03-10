@@ -1,7 +1,8 @@
 // <user>
 module.exports = {
     name: 'autocomplete',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         let userName = data.event.user,
             args = data.args;
 
@@ -12,7 +13,7 @@ module.exports = {
         }
 
         let targetName = args[0],
-            target = channel.getUser(targetName.toLowerCase(), true);
+            target = channel.users.get(targetName, true);
 
         if (target) {
             channel.message(`@${userName}, I see "${targetName}" as ${target.name}.`);

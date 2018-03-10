@@ -32,7 +32,18 @@ class Bot extends EventEmitter {
         this.nativeCommands = new Map();
 
         for (let command of nativeCommands) {
-            this.nativeCommands.set(command.name, command.handler);
+            this.nativeCommands.set(command.name, command);
+        }
+    }
+
+    // Called for each new channel.
+    // This allows commands to add specific data they want to each channel.
+    // For example, the table command sets the tables field.
+    eachChannel(channel) {
+        for (let command of this.nativeCommands.values()) {
+            if (typeof command.eachChannel === 'function') {
+                command.eachChannel(channel);
+            }
         }
     }
 
@@ -77,6 +88,8 @@ class Bot extends EventEmitter {
                         intervals: {},
                         users: {}
                     };
+
+                    this.eachChannel(db);
 
                     channels[name] = db;
                 }

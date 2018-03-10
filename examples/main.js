@@ -10,7 +10,7 @@ bot.connect();
 
 // When the bot is connected...
 bot.on('connected', (bot, event) => {
-	// This sets the amount of messages the bot can response per 30 seconds.
+	// This sets the amount of messages the bot can send per 30 seconds.
 	// If you join only channels that you are a moderator on, you can send up to 100 messages.
 	// Otherwise, the maximum is 20.
 	// This is enforced by Twitch, and exceeding these limits can get you banned for 30 minutes.
@@ -27,16 +27,16 @@ bot.on('connected', (bot, event) => {
 	// Possible permissions are 'all', 'mod', 'streamer', 'owner', and any specific user name.
 	// The third argument is the command response.
 	// If the response starts with a dollar sign, the bot will try to match a native command.
-	// In this case, it will find the native 'commands' command that lists all of the available commands.
-    bot.addCommand('!commands', ['all'], '$commands list');
+	// In this case, it will find the native 'commands' command and use its list argument to list all commands.
+    bot.commands.add('!commands', ['all'], '$commands list');
 	
 	// Another example that calls the 'intervals' native command.
-    bot.addCommand('!intervals', ['mod', 'owner'], '$intervals list');
+    bot.commands.add('!intervals', ['mod', 'owner'], '$intervals list');
 	
-	// Allow the streamer and the bot owner to mute and umute it.
-    bot.addCommand('!mute', ['streamer', 'owner'], '$mute 1');
-    bot.addCommand('!unmute', ['streamer', 'owner'], '$mute');
-	
+	// Allow the streamer and the bot owner to mute and unmute it.
+    bot.commands.add('!mute', ['streamer', 'owner'], '$mute 1');
+    bot.commands.add('!unmute', ['streamer', 'owner'], '$mute');
+
 	// Join a Twitch channel with the given name.
     let channel = bot.join('name');
 	
@@ -51,19 +51,22 @@ bot.on('connected', (bot, event) => {
     settings.pointsNamePlural = 'memes';
 	
 	// Channel specific commands are added exactly like global commands.
-    channel.addCommand('!hours', ['all'], '$hours');
-    channel.addCommand('!points', ['all'], '$points get');
-    channel.addCommand('!howlong', ['all'], '$howlong');
+    channel.commands.add('!points', ['all'], '$points get');
+    channel.commands.add('!howlong', ['all'], '$howlong');
 	
+	// You can add aliases to commands rather than redefining them.
+	channel.commands.add('!hello', ['all'], 'Hi there!');
+	channel.commands.alias('!bonjur', '!hello');
+
 	// Channels also support intervals - commands that get executed automatically every period of time.
 	// The first argument is the name of the interval. Use it later to reference to this interval.
 	// The second argument is the interval timeout, in seconds.
 	// The third argument is the response, much like commands.
 	// In this case, I want to add a point to all of the chatters every 300 seconds, but only if the channel is currently live.
-    channel.addInterval('channeladdpoints', 300, '$iflive $channeladdpoints 1');
+    channel.intervals.add('channeladdpoints', 300, '$if live $channeladdpoints 1');
 	
 	// And add 5 seconds to all chatters every 5 seconds if the channel is live.
-    channel.addInterval('channeladdseconds', 5, '$iflive $channeladdseconds 5');
+    channel.intervals.add('channeladdseconds', 5, '$if live $channeladdseconds 5');
 	
 	// You can attach event listeners to many events.
 	// In the case of 'live', if stream is defined it will contain the stream information.

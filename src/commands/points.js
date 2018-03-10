@@ -8,7 +8,13 @@
 // top <count> <points|eaten>
 module.exports = {
     name: 'points',
-    handler: function (channel, data) {
+
+    eachUser(user) {
+        user.points = 10;
+        user.eaten = 0;
+    },
+    
+    handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
@@ -50,19 +56,19 @@ module.exports = {
                 lowerArg1 = arg1.toLowerCase();
     
             if (lowerArg1 !== 'all') {
-                let target = channel.getUser(lowerArg1, true);
+                let target = channel.users.get(lowerArg1, true);
     
                 if (!target) {
                     channel.message(`@${userName}, I don't know who "${arg1}" is.`);
                     return;
                 }
 
-                target.points = (target.points || 0) + amount;
+                target.points += amount;
                 
                 channel.message(`@${userName}, added ${amount} ${singleOrPlural} to @${target.name}.`);
             } else {
-                for (let chatter of channel.chatters.values()) {
-                    chatter.points = (chatter.points || 0) + amount;
+                for (let chatter of channel.users.chatters.values()) {
+                    chatter.points += amount;
                 }
     
                 channel.message(`@${userName}, added ${amount} ${singleOrPlural} to all chatters.`);
@@ -74,18 +80,18 @@ module.exports = {
                 return;
             }
 
-            let targetName = args[1].toLowerCase(),
-                target = channel.getUser(targetName, true);
+            let arg1 = args[1],
+                target = channel.users.get(arg1, true);
 
             if (!target) {
-                channel.message(`@${userName}, I don't know who "${targetName}" is.`);
+                channel.message(`@${userName}, I don't know who "${arg1}" is.`);
                 return;
             }
 
-            let amount = target.points || 0,
+            let amount = target.points,
                 singleOrPlural = (amount === 1) ? nameSingle : namePlural;
 
-            if (userName === targetName) {
+            if (userName === target.name) {
                 channel.message(`@${userName}, you have ${amount} ${singleOrPlural}.`);
             } else {
                 channel.message(`@${target.name} has ${amount} ${singleOrPlural}.`);
@@ -97,9 +103,9 @@ module.exports = {
                 return;
             }
 
-            let user = channel.getUser(userName),
+            let user = channel.users.get(userName),
                 targetName = args[1],
-                target = channel.getUser(targetName.toLowerCase(), true);
+                target = channel.users.get(targetName, true);
 
             if (!target) {
                 channel.message(`@${userName}, I don't know who "${targetName}" is.`);
@@ -115,7 +121,7 @@ module.exports = {
                 amount;
 
             if (arg2 === 'all') {
-                amount = user.points || 0;
+                amount = user.points;
             } else {
                 amount = parseInt(arg2);
 
@@ -132,11 +138,11 @@ module.exports = {
 
             let singleOrPlural = (amount === 1) ? nameSingle : namePlural;
 
-            if (amount > (user.points || 0)) {
+            if (amount > user.points) {
                 channel.message(`@${userName}, you do not have ${amount} ${singleOrPlural}.`);
             } else {
-                user.points = (user.points || 0) - amount;
-                target.points = (target.points || 0) + amount;
+                user.points -= amount;
+                target.points += amount;
 
                 channel.message(`@${userName} donated ${amount} ${singleOrPlural} to @${target.name}.`);
             }
@@ -147,12 +153,12 @@ module.exports = {
                 return;
             }
 
-            let user = channel.getUser(userName),
+            let user = channel.users.get(userName),
                 arg1 = args[1].toLowerCase(),
                 amount = 0;
 
             if (arg1 === 'all') {
-                amount = user.points || 0;
+                amount = user.points;
             } else {
                 amount = parseInt(arg1);
 
@@ -169,12 +175,12 @@ module.exports = {
 
             let singleOrPlural = (amount === 1) ? nameSingle : namePlural;
 
-            if (amount > (user.points || 0)) {
+            if (amount > user.points) {
                 channel.message(`@${userName}, you do not have ${amount} ${singleOrPlural}.`);
                 return;
             }
 
-            user.points = (user.points || 0) - amount;
+            user.points -= amount;
 
             let rand = Math.floor(Math.random() * 100) + 1;
 
@@ -233,10 +239,10 @@ module.exports = {
             let amountArg = args[3 + slotCount - 1 + optionCount].toLowerCase(),
                 amount;
 
-            let user = channel.getUser(userName);
+            let user = channel.users.get(userName);
 
             if (amountArg === 'all') {
-                amount = user.points || 0;
+                amount = user.points;
             } else {
                 amount = parseInt(amountArg);
 
@@ -251,12 +257,12 @@ module.exports = {
                 return;
             }
 
-            if (amount > (user.points || 0)) {
+            if (amount > user.points) {
                 channel.message(`@${userName} you do not have ${amount} ${(amount === 1) ? nameSingle : namePlural}.`);
                 return;
             }
 
-            user.points = (user.points || 0) - amount;
+            user.points -= amount;
             
             let results = [];
 
@@ -300,12 +306,12 @@ module.exports = {
                 return;
             }
 
-            let user = channel.getUser(userName),
+            let user = channel.users.get(userName),
                 arg1 = args[1].toLowerCase(),
                 amount;
 
             if (arg1 === 'all') {
-                amount = user.points || 0;
+                amount = user.points;
             } else {
                 amount = parseInt(arg1);
 
@@ -322,13 +328,13 @@ module.exports = {
 
             let singleOrPlural = (amount === 1) ? nameSingle : namePlural;
 
-            if (amount > (user.points || 0)) {
+            if (amount > user.points) {
                 channel.message(`@${userName}, you do not have ${amount} ${singleOrPlural}.`);
                 return;
             }
 
-            user.points = (user.points || 0) - amount;
-            user.eaten = (user.eaten || 0) + amount;
+            user.points -= amount;
+            user.eaten += amount;
 
             channel.message(`@${userName} ate ${amount} ${singleOrPlural}. Yummy.`);
         } else if (op === 'eaten') {
@@ -338,18 +344,18 @@ module.exports = {
                 return;
             }
 
-            let targetName = args[1].toLowerCase(),
-                target = channel.getUser(targetName, true);
+            let args1 = args[1],
+                target = channel.users.get(args1, true);
 
             if (!target) {
-                channel.message(`@${userName}, I don't know who "${targetName}" is.`);
+                channel.message(`@${userName}, I don't know who "${args1}" is.`);
                 return;
             }
 
-            let amount = target.eaten || 0,
+            let amount = target.eaten,
                 singleOrPlural = (amount === 1) ? nameSingle : namePlural;
 
-            if (userName === targetName) {
+            if (userName === target.name) {
                 channel.message(`@${userName}, you have eaten ${amount} ${singleOrPlural}.`);
             } else {
                 channel.message(`@${target.name} has eaten ${amount} ${singleOrPlural}.`);
@@ -374,18 +380,18 @@ module.exports = {
                 return;
             }
 
-            let users = Object.values(channel.users).slice();
+            let users = Object.values(channel.users.users).slice();
 
             let arg2 = args[2].toLowerCase();
 
             if (arg2 === 'points') {
-                let top = users.sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, amount).filter((user) => user.points > 0);
+                let top = users.sort((a, b) => b.points - a.points).slice(0, amount).filter((user) => user.points > 0);
 
-                channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.name} (${a.points || 0})`).join(', ')}.`)
+                channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.name} (${a.points})`).join(', ')}.`)
             } else if (arg2 === 'eaten') {
-                let top = users.sort((a, b) => (b.eaten || 0) - (a.eaten || 0)).slice(0, amount).filter((user) => user.eaten > 0);
+                let top = users.sort((a, b) => b.eaten - a.eaten).slice(0, amount).filter((user) => user.eaten > 0);
 
-                channel.message(`@${userName}, top ${amount} eaters: ${top.map((a) => `${a.name} (${a.eaten || 0})`).join(', ')}.`)
+                channel.message(`@${userName}, top ${amount} eaters: ${top.map((a) => `${a.name} (${a.eaten})`).join(', ')}.`)
             } else {
                 channel.message(`@${userName}, unknown sort mode "${arg2}".`)
                 return;

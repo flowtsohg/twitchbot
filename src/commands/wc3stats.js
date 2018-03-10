@@ -52,7 +52,8 @@ function getBnetRaceRow(rows, race) {
 // e.g.: solo 
 module.exports = {
     name: 'wc3stats',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         let command = data.command,
             user = data.event.user,
             args = data.args;
@@ -163,7 +164,5 @@ module.exports = {
                     }
                 });
         }
-
-        
     }
 };

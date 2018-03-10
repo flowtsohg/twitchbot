@@ -4,7 +4,8 @@
 // args: list
 module.exports = {
     name: 'intervals',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;

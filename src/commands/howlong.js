@@ -2,7 +2,8 @@ let twitchApi = require ('../twitchapi');
 
 module.exports = {
     name: 'howlong',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         let userName = data.event.user;
 
         if (channel.name === userName) {

@@ -40,7 +40,7 @@ class Connection extends EventEmitter {
         // This timer sends a ping to Twitch every 5 minutes.
         // If the ping is not answered with a pong within 10 seconds, the connection is assumed to be dead, which will trigger a reconnection.
         this.pingTimer = new Timer(() => this.ping(), 300000);
-        this.pongTimeout = null;
+        this.pongTimeout = 0;
     }
 
     setMessagesPerHalfMinute(value) {
@@ -104,8 +104,8 @@ class Connection extends EventEmitter {
 
     send(data) {
         this.socket.write(`${data}\r\n`);
-
-        if (data === 'PING :tmi.twitch.tv') {
+        
+        if (data === 'PING') {
             this.pongTimeout = setTimeout(() => this.reconnect(), 10000);
         }
 

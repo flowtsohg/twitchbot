@@ -1,6 +1,7 @@
 module.exports = {
     name: 'channeladdseconds',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         let arg0 = data.args[0],
             amount = parseInt(arg0);
 
@@ -9,7 +10,7 @@ module.exports = {
             return;
         }
 
-        for (let chatter of channel.chatters.values()) {
+        for (let chatter of channel.users.chatters.values()) {
             chatter.seconds += amount;
         }
     }

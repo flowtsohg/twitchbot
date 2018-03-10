@@ -1,7 +1,8 @@
 // args: <user>
 module.exports = {
     name: 'whois',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
@@ -12,7 +13,7 @@ module.exports = {
         }
 
         let arg0 = args[0],
-            target = channel.getUser(arg0.toLowerCase(), true);
+            target = channel.users.get(arg0, true);
 
         if (!target) {
             channel.message(`@${userName}, I don't know who '${arg0}' is.`);

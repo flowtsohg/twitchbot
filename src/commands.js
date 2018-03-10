@@ -13,19 +13,21 @@
         delete this.commands[name];
     }
 
-    addAlias(name, target) {
+    alias(name, target) {
         this.aliases[name] = { name, target };
     }
 
-    removeAlias(name) {
+    unalias(name) {
         delete this.aliases[name];
     }
 
-    get(name) {
-        let alias = this.aliases[name];
+    get(name, rejectAliases) {
+        if (!rejectAliases) {
+            let alias = this.aliases[name];
 
-        if (alias) {
-            name = alias.target;
+            if (alias) {
+                name = alias.target;
+            }
         }
 
         let command;

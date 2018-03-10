@@ -44,8 +44,14 @@ class Intervals extends EventEmitter {
         return this.intervals[name];
     }
 
+    start() {
+        for (let timer of this.timers.values()) {
+            timer.start();
+        }
+    }
+
     stop() {
-        for (let timer of this.timers) {
+        for (let timer of this.timers.values()) {
             timer.stop();
         }
     }
@@ -55,8 +61,6 @@ class Intervals extends EventEmitter {
 
         if (!timers.has(interval.name)) {
             let timer = new Timer(() => this.emit('fired', interval), interval.timeout * 1000)
-        
-            timer.start();
 
             timers.set(interval.name, timer);
 

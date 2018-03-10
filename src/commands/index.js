@@ -8,7 +8,7 @@ module.exports = [
     require('./channeladdseconds'),
     require('./howlong'),
     require('./mute'),
-    require('./iflive'),
+    require('./if'),
     require('./whois'),
     require('./table'),
     require('./commands'),

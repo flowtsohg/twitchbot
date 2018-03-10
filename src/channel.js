@@ -3,34 +3,64 @@ let Timer = require('./timer');
 let twitchApi = require ('./twitchapi');
 let Commands = require('./commands');
 let Intervals = require('./intervals');
+let Users = require('./users');
 
 class Channel extends EventEmitter {
     constructor(bot, name, db) {
         super();
 
-        this.db = db;
-        this.settings = db.settings;
         this.bot = bot;
         this.name = name.toLowerCase();
+        this.db = db;
+        this.settings = db.settings;
+
         this.joined = false;
 
         this.muted = false;
         
         this.isLive = false;
+
         this.isHosting = false;
         this.hostTarget = '';
 
-        this.chatters = new Map();
-        this.mods = new Set();
-
-        this.liveUpdater = new Timer(() => this.updateLive(), 30000);
-
-        this.users = db.users;
-
+        // bot.commands is used as the parent of this commands object.
+        // This adds automatic lookup of global commands when no channel specific commands are matched.
         this.commands = new Commands(db, bot.commands);
 
         this.intervals = new Intervals(db);
         this.intervals.on('fired', (interval) => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }));
+
+        this.users = new Users(db);
+        this.users.on('new', (user) => this.eachUser(user));
+        this.liveUpdater = new Timer(() => this.updateLive(), 30000);
+    }
+
+    // Called for each new user.
+    // This allows commands to add specific data they want to each user.
+    // For example, the points command sets the points and eaten fields.
+    eachUser(user) {
+        for (let command of this.bot.nativeCommands.values()) {
+            if (typeof command.eachUser === 'function') {
+                command.eachUser(user);
+            }
+        }
+    }
+
+    // Called automatically.
+    join() {
+        this.joined = true;
+
+        this.liveUpdater.start();
+
+        this.intervals.start();
+        
+        // Load up this channel's chatters list.
+        // While this requires an HTTP fetch, it is still a lot faster than waiting for the initial JOIN events.
+        // See the comment below in handleEvent().
+        this.loadChattersList();
+        
+        // Check if the channel is live right now.
+        this.updateLive();
     }
 
     part() {
@@ -61,7 +91,7 @@ class Channel extends EventEmitter {
         } else if (userName === this.name) {
             return 2;
         // Moderator.
-        } else if (this.mods.has(userName)) {
+        } else if (this.users.mods.has(userName)) {
             return 1;
         }
 
@@ -83,7 +113,7 @@ class Channel extends EventEmitter {
                     return 'streamer';
                 }
             } else if (token === 'mod') {
-                if (this.mods.has(userName)) {
+                if (this.users.mods.has(userName)) {
                     return 'mod';
                 }
             } if (token === 'all') {
@@ -102,17 +132,17 @@ class Channel extends EventEmitter {
 
     buildCommandArgs(command, event) {
         let args = command.response.split(' ');
-        
+
         if (event) {
             let eventArgs = event.data.split(' ').slice(1),
                 elementsToRemove = [];
             
             for (let i = 0, l = args.length; i < l; i++) {
-                let arg = args[i],
-                    match;
+                let arg = args[i];
                 
                 // Replace $argN with the Nth event argument.
-                match = arg.match(/\$arg(\d+)/);
+                let match = arg.match(/\$arg(\d+)/);
+
                 if (match) {
                     let index = parseInt(match[1], 10),
                         eventArg = eventArgs[index];
@@ -124,9 +154,23 @@ class Channel extends EventEmitter {
                     }
                 }
 
-                // Replace $user with the event user.
-                if (arg === '$user') {
-                    args[i] = event.user;
+                // Handle interpolations.
+                switch (arg) {
+                    case '$user':
+                        args[i] = event.user;
+                        break;
+                    
+                    case '$streamer':
+                        args[i] = this.name;
+                        break;
+
+                    case '$owner':
+                        args[i] = this.bot.connection.name;
+                        break;
+
+                    case '$hosttarget':
+                        args[i] = this.hostTarget;
+                        break;
                 }
             }
 
@@ -156,7 +200,7 @@ class Channel extends EventEmitter {
                 args.shift();
 
                 // Run the command.
-                command(this, data);
+                command.handler(this, data);
                 
                 return;
             }
@@ -188,11 +232,11 @@ class Channel extends EventEmitter {
             // While the JOIN event should have been used to check if a user joined, it doesn't work like that.
             // Twitch batches join/part events and sends them sometimes after a long time.
             // This means that a user can join the channel and send a message long before the join event comes through.
-            this.addChatter(user);
+            this.users.add(user);
     
             // Another place to get mod status.
             if (tags.mod === '1') {
-                this.mods.add(user);
+                this.users.setMod(user, true);
             }
         }
 
@@ -202,38 +246,22 @@ class Channel extends EventEmitter {
             }
         } else if (type === 'join') {
             if (user === this.bot.connection.name) {
-                // Load up this channel's chatters list.
-                // While this requires an HTTP fetch, it is still a lot faster than waiting for the initial JOIN events.
-                // See the comment above in handleEvent().
-                this.loadChattersList();
-                
-                // Check if the channel is live right now.
-                this.updateLive();
-
-                // If this is the first time joining.
-                if (!this.joined) {
-                    // And check if the channel is live continuously forever.
-                    // Note that this may show wrong results for up to a couple of minutes after the channel changed modes.
-                    // Twitch. ¯\_(ツ)_/¯
-                    this.liveUpdater.start();
-                }
-
-                this.joined = true;
+                this.join();
 
                 this.emit('joined', this, event);
             }
         } else if (type === 'part') {
-            this.chatters.delete(user);
+            this.users.remove(user);
         } else if (type === 'mode') {
             if (event.mode === '+') {
-                this.mods.add(user);
+                this.users.setMod(user, true);
             } else {
-                this.mods.delete(user);
+                this.users.setMod(user, false);
             }
         } else if (type === 'names') {
-            // Handle the names list, even though it's not really needed due to the chatters list being obtained via HTTP above in the 'join' event.
+            // Handle the names list, even though it's not really needed due to the chatters list being obtained via HTTP above in join().
             for (let name of event.data.split(' ')) {
-                this.addChatter(name);
+                this.users.add(name);
             }
         } else if (type === 'host') {
             let target = event.target;
@@ -262,17 +290,18 @@ class Channel extends EventEmitter {
         let json = await twitchApi.getChatters(this.name);
 
         if (json) {
-            let chatters = json.chatters;
+            let chatters = json.chatters,
+                users = this.users;
 
             this.log(`Got chatters list with ${chatters.moderators.length} mods and ${chatters.viewers.length} viewers.`);
 
             for (let mod of chatters.moderators) {
-                this.addChatter(mod);
-                this.mods.add(mod);
+                users.add(mod);
+                users.setMod(mod, true);
             }
 
             for (let viewer of chatters.viewers) {
-                this.addChatter(viewer);
+                users.add(viewer);
             }
         }
     }
@@ -293,70 +322,6 @@ class Channel extends EventEmitter {
                 }
             }
         }
-    }
-
-    addChatter(name) {
-        // If this user is a chatter, there is no need to do anything.
-        let chatters = this.chatters;
-        if (chatters.has(name)) {
-            return false;
-        }
-
-        // If this user is in the DB, add it to the chatters.
-        let users = this.users,
-            user = users[name];
-
-        if (user) {
-            chatters.set(name, user);
-            return true;
-        }
-
-        // This is a new user, so create it, add it to the DB, and add it to the chatters.
-        let newUser = { name };
-
-        users[name] = newUser;
-        chatters.set(name, newUser);
-
-        return true;
-    }
-
-    getUser(name, autocomplete) {
-        // Allow to refer to users with the Twitch @user notation.
-        if (name[0] === '@') {
-            name = name.substring(1);
-        }
-
-        let chatters = this.chatters,
-            chatter = chatters.get(name);
-
-        if (chatter) {
-            return chatter;
-        }
-
-        if (autocomplete) {
-            for (let chatter of chatters.values()) {
-                if (chatter.name.startsWith(name)) {
-                    return chatter;
-                }
-            }
-        }
-        
-        let users = this.users,
-            user = users[name];
-        
-        if (user) {
-            return user;
-        }
-
-        if (autocomplete) {
-            for (let user of Object.values(users)) {
-                if (user.name.startsWith(name)) {
-                    return user;
-                }
-            }
-        }
-
-        return null;
     }
 }
 

@@ -1,7 +1,8 @@
 // [<any>]
 module.exports = {
     name: 'mute',
-    handler: function (channel, data) {
+    
+    handler(channel, data) {
         if (data.args.length > 0) {
             channel.muted = true;
         } else {
