@@ -46,7 +46,7 @@ async function getStream(clientid, streamName) {
     let users = await getUsers(clientid, [streamName]);
 
     if (users && users.length === 1) {
-        let streamObject = await get(clientid, `https://api.twitch.tv/kraken/streams/${users[0]._id}`);
+        return await get(clientid, `https://api.twitch.tv/kraken/streams/${users[0]._id}`);
     }
 }
 
