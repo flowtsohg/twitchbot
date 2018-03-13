@@ -98,8 +98,8 @@ module.exports = {
             }
         } else if (op === 'donate') {
             if (args.length < 3) {
-                channel.message(`@${user}, usage: ${command.name} <user> <amount>`);
-                channel.message(`@${user}, donate to the given user the given amount. The amount can be "all" to donate everything.`);
+                channel.message(`@${userName}, usage: ${command.name} <user> <amount>`);
+                channel.message(`@${userName}, donate to the given user the given amount. The amount can be "all" to donate everything.`);
                 return;
             }
 
