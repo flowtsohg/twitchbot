@@ -18,10 +18,16 @@ class Channel extends EventEmitter {
 
         this.muted = false;
         
+        // Live status.
         this.isLive = false;
 
+        // Outgoing hosts.
         this.isHosting = false;
         this.hostTarget = '';
+
+        // Incoming hosts.
+        this.isHosted = false;
+        this.hosts = new Set();
 
         // bot.commands is used as the parent of this commands object.
         // This adds automatic lookup of global commands when no channel specific commands are matched.
@@ -32,12 +38,13 @@ class Channel extends EventEmitter {
 
         this.users = new Users(db);
         this.users.on('new', (user) => this.eachUser(user));
-        this.liveUpdater = new Timer(() => this.updateLive(), 30000);
+
+        this.updater = new Timer(() => this.update(), 30000);
     }
 
     // Called for each new user.
     // This allows commands to add specific data they want to each user.
-    // For example, the points command sets the points and eaten fields.
+    // For example, the points command sets the points field of each user.
     eachUser(user) {
         for (let command of this.bot.nativeCommands.values()) {
             if (typeof command.eachUser === 'function') {
@@ -50,7 +57,8 @@ class Channel extends EventEmitter {
     join() {
         this.joined = true;
 
-        this.liveUpdater.start();
+        this.updater.start();
+        this.update();
 
         this.intervals.start();
         
@@ -58,15 +66,12 @@ class Channel extends EventEmitter {
         // While this requires an HTTP fetch, it is still a lot faster than waiting for the initial JOIN events.
         // See the comment below in handleEvent().
         this.loadChattersList();
-        
-        // Check if the channel is live right now.
-        this.updateLive();
     }
 
     part() {
         this.joined = false;
 
-        this.liveUpdater.stop();
+        this.updater.stop();
 
         this.intervals.stop();
 
@@ -306,7 +311,9 @@ class Channel extends EventEmitter {
         }
     }
 
-    async updateLive() {
+    async update() {
+        // Check if the channel is live or not.
+        // Note that this may be delayed a lot, depending on Twitch.
         if (!this.isHosting) {
             let json = await twitchApi.getStream(this.bot.clientid, this.name);
 
@@ -317,9 +324,48 @@ class Channel extends EventEmitter {
                 if (isLive !== this.isLive) {
                     this.isLive = isLive;
 
+                    // Clear hosts when the channel goes offline.
+                    if (!isLive) {
+                        this.isHosted = false;
+                        this.hosts.clear();
+                    }
+
                     // If live the stream object is given, otherwise it will be undefined.
                     this.emit('live', this, json.stream)
                 }
+            }
+        }
+
+        // If the channel is live, check if someone is hosting it, and update the hosts.
+        if (this.isLive) {
+            let json = await twitchApi.getHosts(this.bot.clientid, this.name);
+
+            if (json && json.hosts.length) {
+                let hosts = new Set();
+
+                for (let host of json.hosts) {
+                    hosts.add(host.host_login);
+                }
+
+                // Remove hosts that are no longer hosting.
+                for (let host of this.hosts) {
+                    if (!hosts.has(host)) {
+                        this.hosts.delete(host);
+
+                        this.emit('hosted', this, host, false);
+                    }
+                }
+
+                // Add new hosts.
+                for (let host of hosts) {
+                    if (!this.hosts.has(host)) {
+                        this.hosts.add(host);
+
+                        this.emit('hosted', this, host, true);
+                    }
+                }
+
+                this.isHosted = this.hosts.length > 0;
             }
         }
     }

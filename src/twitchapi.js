@@ -42,6 +42,22 @@ async function getChannel(clientid, channelName) {
     }
 }
 
+async function getHosts(clientid, channelName) {
+    let users = await getUsers(clientid, [channelName]);
+
+    if (users && users.length === 1) {
+        return await get(clientid, `https://tmi.twitch.tv/hosts?include_logins=1&target=${users[0]._id}`);
+    }
+}
+
+async function getHost(clientid, channelName) {
+    let users = await getUsers(clientid, [channelName]);
+
+    if (users && users.length === 1) {
+        return await get(clientid, `https://tmi.twitch.tv/hosts?include_logins=1&host=${users[0]._id}`);
+    }
+}
+
 async function getStream(clientid, streamName) {
     let users = await getUsers(clientid, [streamName]);
 
@@ -84,6 +100,8 @@ module.exports = {
     get,
     getUsers,
     getChannel,
+    getHosts,
+    getHost,
     getStream,
     getUserFollow,
     getUserSubscription,
