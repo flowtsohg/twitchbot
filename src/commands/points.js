@@ -4,14 +4,12 @@
 // gamble <amount|all>
 // pull <N-slots> <M-options> <multiplier1> <multiplier2> ... <multiplierN-1> <option1> <option2> ... <optionM> <amount|all>
 // eat <amount|all>
-// eaten <user>
-// top <count> <points|eaten>
+// top <count>
 module.exports = {
     name: 'points',
 
     eachUser(user) {
         user.points = 10;
-        user.eaten = 0;
     },
     
     handler(channel, data) {
@@ -21,7 +19,7 @@ module.exports = {
         
         if (args.length < 1) {
             channel.message(`@${userName}, usage: ${command.name} <op> ...`);
-            channel.message(`@${userName}, available ops are: add, get, donate, gamble, pull, eat, eaten, top.`);
+            channel.message(`@${userName}, ops: add, get, donate, gamble, pull, eat, top.`);
             return;
         }
 
@@ -322,7 +320,7 @@ module.exports = {
             }
 
             if (amount < 1) {
-                channel.message(`@${userName}, you must eat 1 or more ${namePlural}.`)
+                channel.message(`@${userName}, did nothing.`)
                 return;
             }
 
@@ -334,36 +332,11 @@ module.exports = {
             }
 
             user.points -= amount;
-            user.eaten += amount;
 
             channel.message(`@${userName} ate ${amount} ${singleOrPlural}. Yummy.`);
-        } else if (op === 'eaten') {
-            if (args.length < 2) {
-                channel.message(`@${userName}, usage: ${command.name} <user>`);
-                channel.message(`@${userName}, get the amount of ${namePlural} the given user has eaten.`);
-                return;
-            }
-
-            let args1 = args[1],
-                target = channel.users.get(args1, true);
-
-            if (!target) {
-                channel.message(`@${userName}, I don't know who "${args1}" is.`);
-                return;
-            }
-
-            let amount = target.eaten,
-                singleOrPlural = (amount === 1) ? nameSingle : namePlural;
-
-            if (userName === target.name) {
-                channel.message(`@${userName}, you have eaten ${amount} ${singleOrPlural}.`);
-            } else {
-                channel.message(`@${target.name} has eaten ${amount} ${singleOrPlural}.`);
-            }
         } else if (op === 'top') {
-            if (args.length < 3) {
-                channel.message(`@${userName}, usage: ${command.name} <count> <points|eaten>`);
-                channel.message(`@${userName}, list the top count chatters, sorting based on ${namePlural} or eaten ${namePlural}.`);
+            if (args.length < 2) {
+                channel.message(`@${userName}, usage: ${command.name} <count>`);
                 return;
             }
 
@@ -380,22 +353,9 @@ module.exports = {
                 return;
             }
 
-            let users = Object.values(channel.users.users).slice();
+            let top = Object.values(channel.users.users).slice().sort((a, b) => b.points - a.points).slice(0, amount).filter((user) => user.points > 0);
 
-            let arg2 = args[2].toLowerCase();
-
-            if (arg2 === 'points') {
-                let top = users.sort((a, b) => b.points - a.points).slice(0, amount).filter((user) => user.points > 0);
-
-                channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.name} (${a.points})`).join(', ')}.`)
-            } else if (arg2 === 'eaten') {
-                let top = users.sort((a, b) => b.eaten - a.eaten).slice(0, amount).filter((user) => user.eaten > 0);
-
-                channel.message(`@${userName}, top ${amount} eaters: ${top.map((a) => `${a.name} (${a.eaten})`).join(', ')}.`)
-            } else {
-                channel.message(`@${userName}, unknown sort mode "${arg2}".`)
-                return;
-            }
+            channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.name} (${a.points})`).join(', ')}.`)
         } else {
             channel.message(`@${userName}, what is "${op}"?`);
         }
