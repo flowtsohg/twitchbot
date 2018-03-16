@@ -47,9 +47,13 @@ class Connection extends EventEmitter {
         this.messageTimer.setTimeout(1000 / (Math.max(20, Math.min(value, 100)) / 30));
     }
 
+    // Sends one message from the queue.
+    // If the queue is empty, the idle event will be emitted.
     sendOneMessage() {
         if (this.queue.length > 0) {
             this.send(this.queue.shift());
+        } else {
+            this.emit('idle');
         }
     }
 
@@ -105,6 +109,8 @@ class Connection extends EventEmitter {
     send(data) {
         this.socket.write(`${data}\r\n`);
         
+        // If a ping is being sent, check that within 10 seconds a pong is recieved.
+        // Otherwise, the connection is assumed to be dead, and will reconnect.
         if (data === 'PING') {
             this.pongTimeout = setTimeout(() => this.reconnect(), 10000);
         }
@@ -173,9 +179,8 @@ class Connection extends EventEmitter {
 
     parse(line) {
         let tags = {},
-            match;
-    
-        match = line.match(/^@([^ ]+)/);
+            match = line.match(/^@([^ ]+)/);
+
         if (match) {
             for (let tag of match[1].split(';')) {
                 let [key, value] = tag.split('=');

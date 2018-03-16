@@ -5,6 +5,7 @@ module.exports = {
     handler(channel, data) {
         if (data.args.length > 0) {
             channel.muted = true;
+            channel.queue.length = 0;
         } else {
             channel.muted = false;
             channel.message('Hello again!');

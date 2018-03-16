@@ -33,6 +33,12 @@ class Channel extends EventEmitter {
         // This adds automatic lookup of global commands when no channel specific commands are matched.
         this.commands = new Commands(db, bot.commands);
 
+        // The channel's message queue.
+        this.queue = [];
+
+        // The last time a command ran.
+        this.lastCommandTime = 0;
+
         this.intervals = new Intervals(db);
         this.intervals.on('fired', (interval) => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }));
 
@@ -80,7 +86,7 @@ class Channel extends EventEmitter {
 
     message(message) {
         if (!this.muted) {
-            this.bot.message(this.name, message);
+            this.queue.push(message);
         }
     }
 
@@ -219,10 +225,16 @@ class Channel extends EventEmitter {
             command = this.commands.get(message.split(' ', 1)[0].toLowerCase());
         
         if (command) {
-            if (this.isPrivForCommand(event.user, command)) {
-                this.runCommand({ command, event, args: this.buildCommandArgs(command, event) });
-            } else {
-                this.message(`@${event.user}, you are not allowed to use that.`);
+            let t = Date.now();
+
+            if (t - this.lastCommandTime > this.settings.commandsDelay) {
+                this.lastCommandTime = t;
+
+                if (this.isPrivForCommand(event.user, command)) {
+                    this.runCommand({ command, event, args: this.buildCommandArgs(command, event) });
+                } else {
+                    this.message(`@${event.user}, you are not allowed to use that.`);
+                }
             }
         }
     }

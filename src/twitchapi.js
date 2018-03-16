@@ -91,7 +91,15 @@ async function getUserEmotes(clientid, userName) {
         return await get(clientid, `https://api.twitch.tv/kraken/users/${users[0]._id}/emotes`);
     }
 }
-    
+
+async function getRecentMessages(clientid, channelName) {
+    let users = await getUsers(clientid, [channelName]);
+
+    if (users && users.length === 1) {
+        return await get(clientid, `https://tmi.twitch.tv/api/rooms/${users[0]._id}/recent_messages`);
+    }
+}
+
 async function getChatters(streamName) {
     return await jsonFetch(`https://tmi.twitch.tv/group/user/${streamName}/chatters`);
 }
@@ -106,5 +114,6 @@ module.exports = {
     getUserFollow,
     getUserSubscription,
     getUserEmotes,
+    getRecentMessages,
     getChatters
 };

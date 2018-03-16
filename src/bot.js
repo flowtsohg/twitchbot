@@ -23,6 +23,7 @@ class Bot extends EventEmitter {
         this.connection.on('reconnecting', (timeout) => this.log(`An error occured, trying to reconnect in ${timeout / 1000} seconds`));
         this.connection.on('received', (data) => this.received(data));
         this.connection.on('sent', (data) => this.sent(data));
+        this.connection.on('idle', () => this.sendBatch());
         
         // Needed for Twitch API calls.
         this.clientid = clientid;
@@ -82,11 +83,16 @@ class Bot extends EventEmitter {
                 if (!db) {
                     db = {
                         name,
-                        settings: { commandsEnabled: false },
                         commands: {},
                         aliases: {},
                         intervals: {},
-                        users: {}
+                        users: {},
+                        settings: {
+                            // Commands are disabled by default.
+                            commandsEnabled: false,
+                            // A default delay between accepting commands.
+                            commandsDelay: 500
+                        }
                     };
 
                     this.eachChannel(db);
@@ -153,6 +159,15 @@ class Bot extends EventEmitter {
         }
 
         this.emit(event.type, this, event);
+    }
+
+    sendBatch() {
+        // Grab one message from each channel and forward it to the connection.
+        for (let [name, channel] of this.channels) {
+            if (channel.queue.length) {
+                this.connection.message(name, channel.queue.shift());
+            }
+        }
     }
 }
 
