@@ -40,6 +40,14 @@ module.exports = {
             if (channel.isHosting) {
                 return;
             }
+        } else if (condition === 'hosted') {
+            if (!channel.isHosted) {
+                return;
+            }
+        } else if (condition === 'nothosted') {
+            if (channel.isHosted) {
+                return;
+            }
         } else {
             return;
         }

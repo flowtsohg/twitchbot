@@ -158,6 +158,12 @@ class Connection extends EventEmitter {
 
         this.reconnections += 1;
 
+        // If the socket is connected, disconnect first.
+        // This will happen if Twitch does not respond to a ping.
+        if (this.socket.readable) {
+            this.socket.destroy();
+        }
+
         setTimeout(() => this.connect(), this.reconnectTimeout);
 
         this.emit('reconnecting', this.reconnectTimeout);

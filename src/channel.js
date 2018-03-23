@@ -76,7 +76,7 @@ class Channel extends EventEmitter {
 
     part() {
         this.joined = false;
-
+        
         this.updater.stop();
 
         this.intervals.stop();
@@ -227,9 +227,11 @@ class Channel extends EventEmitter {
         if (command) {
             let t = Date.now();
 
+            // If the time since the last command is bigger than the commands delay, run the command.
             if (t - this.lastCommandTime > this.settings.commandsDelay) {
                 this.lastCommandTime = t;
 
+                // But only run it if the user is allowed to.
                 if (this.isPrivForCommand(event.user, command)) {
                     this.runCommand({ command, event, args: this.buildCommandArgs(command, event) });
                 } else {

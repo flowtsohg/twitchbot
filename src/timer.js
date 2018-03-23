@@ -6,7 +6,9 @@
     }
 
     start() {
-        this.interval = setInterval(() => this.handler(this), this.timeout);
+        if (!this.interval) {
+            this.interval = setInterval(() => this.handler(this), this.timeout);
+        }
     }
 
     stop() {

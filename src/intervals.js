@@ -26,6 +26,8 @@ class Intervals extends EventEmitter {
             intervals[name] = interval;
 
             this.addTimer(interval);
+
+            return;
         }
 
         let interval = intervals[name];
