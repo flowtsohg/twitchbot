@@ -1,7 +1,7 @@
 // args: <user>
 module.exports = {
     name: 'whois',
-    
+
     handler(channel, data) {
         let command = data.command,
             userName = data.event.user,

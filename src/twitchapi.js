@@ -2,7 +2,7 @@ let fetch = require('node-fetch');
 
 async function jsonFetch(url, options) {
     let response;
-    
+
     try {
         response = await fetch(url, options);
     } catch (e) {
@@ -68,7 +68,7 @@ async function getStream(clientid, streamName) {
 
 async function getUserFollow(clientid, streamName, userName) {
     let users = await getUsers(clientid, [streamName, userName]);
-    
+
     if (users && users.length === 2) {
         return await get(clientid, `https://api.twitch.tv/kraken/users/${users[1]._id}/follows/channels/${users[0]._id}`);
     }
@@ -77,7 +77,7 @@ async function getUserFollow(clientid, streamName, userName) {
 // Requires permissions
 async function getUserSubscription(clientid, streamName, userName) {
     let users = await getUsers(clientid, [streamName, userName]);
-    
+
     if (users && users.length === 2) {
         return await get(clientid, `https://api.twitch.tv/kraken/users/${users[1]._id}/subscriptions/${users[0]._id}`);
     }
@@ -86,7 +86,7 @@ async function getUserSubscription(clientid, streamName, userName) {
 // Requires permissions
 async function getUserEmotes(clientid, userName) {
     let users = await getUsers(clientid, [userName]);
-    
+
     if (users && users.length === 1) {
         return await get(clientid, `https://api.twitch.tv/kraken/users/${users[0]._id}/emotes`);
     }

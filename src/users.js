@@ -1,6 +1,6 @@
 ﻿let EventEmitter = require('events');
 
-class Users extends EventEmitter {
+module.exports = class Users extends EventEmitter {
     constructor(db) {
         super();
 
@@ -63,7 +63,7 @@ class Users extends EventEmitter {
         // If this is an active chatter, return it.
         let chatters = this.chatters,
             chatter = chatters.get(name);
-        
+
         if (chatter) {
             return chatter;
         }
@@ -76,11 +76,11 @@ class Users extends EventEmitter {
                 }
             }
         }
-        
+
         // Or maybe it's a user that is in the DB but not chatting right now.
         let users = this.users,
             user = users[name];
-        
+
         if (user) {
             return user;
         }
@@ -101,10 +101,8 @@ class Users extends EventEmitter {
     remove(name) {
         // All Twitch names are lower case.
         name = name.toLowerCase();
-        
+
         // Deletes this user from the chatters, the DB is not affected.
         this.chatters.delete(name);
     }
-}
-
-module.exports = Users;
+};

@@ -1,7 +1,7 @@
 // <user>
 module.exports = {
     name: 'autocomplete',
-    
+
     handler(channel, data) {
         let userName = data.event.user,
             args = data.args;

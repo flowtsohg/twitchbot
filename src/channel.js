@@ -1,11 +1,11 @@
 ﻿let EventEmitter = require('events');
 let Timer = require('./timer');
-let twitchApi = require ('./twitchapi');
+let twitchApi = require('./twitchapi');
 let Commands = require('./commands');
 let Intervals = require('./intervals');
 let Users = require('./users');
 
-class Channel extends EventEmitter {
+module.exports = class Channel extends EventEmitter {
     constructor(bot, name, db) {
         super();
 
@@ -17,7 +17,7 @@ class Channel extends EventEmitter {
         this.joined = false;
 
         this.muted = false;
-        
+
         // Live status.
         this.isLive = false;
 
@@ -67,7 +67,7 @@ class Channel extends EventEmitter {
         this.update();
 
         this.intervals.start();
-        
+
         // Load up this channel's chatters list.
         // While this requires an HTTP fetch, it is still a lot faster than waiting for the initial JOIN events.
         // See the comment below in handleEvent().
@@ -76,12 +76,12 @@ class Channel extends EventEmitter {
 
     part() {
         this.joined = false;
-        
+
         this.updater.stop();
 
         this.intervals.stop();
 
-        this.emit('parted', this);
+        this.emit('parted');
     }
 
     message(message) {
@@ -98,10 +98,10 @@ class Channel extends EventEmitter {
         // Owner.
         if (userName === this.bot.connection.name) {
             return 3;
-        // Streamer.
+            // Streamer.
         } else if (userName === this.name) {
             return 2;
-        // Moderator.
+            // Moderator.
         } else if (this.users.mods.has(userName)) {
             return 1;
         }
@@ -129,7 +129,7 @@ class Channel extends EventEmitter {
                 }
             } if (token === 'all') {
                 return 'all';
-            } 
+            }
         }
 
         return '';
@@ -147,10 +147,10 @@ class Channel extends EventEmitter {
         if (event) {
             let eventArgs = event.data.split(' ').slice(1),
                 elementsToRemove = [];
-            
+
             for (let i = 0, l = args.length; i < l; i++) {
                 let arg = args[i];
-                
+
                 // Replace $argN with the Nth event argument.
                 let match = arg.match(/\$arg(\d+)/);
 
@@ -170,7 +170,7 @@ class Channel extends EventEmitter {
                     case '$user':
                         args[i] = event.user;
                         break;
-                    
+
                     case '$streamer':
                         args[i] = this.name;
                         break;
@@ -212,7 +212,7 @@ class Channel extends EventEmitter {
 
                 // Run the command.
                 command.handler(this, data);
-                
+
                 return;
             }
         }
@@ -223,7 +223,7 @@ class Channel extends EventEmitter {
     handleCommand(event) {
         let message = event.data,
             command = this.commands.get(message.split(' ', 1)[0].toLowerCase());
-        
+
         if (command) {
             let t = Date.now();
 
@@ -252,7 +252,7 @@ class Channel extends EventEmitter {
             // Twitch batches join/part events and sends them sometimes after a long time.
             // This means that a user can join the channel and send a message long before the join event comes through.
             this.users.add(user);
-    
+
             // Another place to get mod status.
             if (tags.mod === '1') {
                 this.users.setMod(user, true);
@@ -267,7 +267,7 @@ class Channel extends EventEmitter {
             if (user === this.bot.connection.name) {
                 this.join();
 
-                this.emit('joined', this, event);
+                this.emit('joined', event);
             }
         } else if (type === 'part') {
             this.users.remove(user);
@@ -295,12 +295,12 @@ class Channel extends EventEmitter {
                 if (this.isLive) {
                     this.isLive = false;
 
-                    this.emit('live', this);
+                    this.emit('live');
                 }
             }
         }
 
-        this.emit(type, this, event);
+        this.emit(type, event);
     }
 
     async loadChattersList() {
@@ -345,7 +345,7 @@ class Channel extends EventEmitter {
                     }
 
                     // If live the stream object is given, otherwise it will be undefined.
-                    this.emit('live', this, json.stream)
+                    this.emit('live', json.stream)
                 }
             }
         }
@@ -366,7 +366,7 @@ class Channel extends EventEmitter {
                     if (!hosts.has(host)) {
                         this.hosts.delete(host);
 
-                        this.emit('hosted', this, host, false);
+                        this.emit('hosted', host, false);
                     }
                 }
 
@@ -375,7 +375,7 @@ class Channel extends EventEmitter {
                     if (!this.hosts.has(host)) {
                         this.hosts.add(host);
 
-                        this.emit('hosted', this, host, true);
+                        this.emit('hosted', host, true);
                     }
                 }
 
@@ -383,6 +383,4 @@ class Channel extends EventEmitter {
             }
         }
     }
-}
-
-module.exports = Channel;
+};

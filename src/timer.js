@@ -1,4 +1,4 @@
-﻿class Timer  {
+﻿module.exports = class Timer {
     constructor(handler, timeout) {
         this.handler = handler;
         this.timeout = timeout;
@@ -14,7 +14,7 @@
     stop() {
         if (this.interval) {
             clearInterval(this.interval);
-            
+
             this.interval = 0;
         }
     }
@@ -27,6 +27,4 @@
             this.start();
         }
     }
-}
-
-module.exports = Timer;
+};

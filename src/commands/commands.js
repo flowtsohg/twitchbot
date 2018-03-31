@@ -5,7 +5,7 @@
 // inspect <name>
 module.exports = {
     name: 'commands',
-    
+
     handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
@@ -28,7 +28,7 @@ module.exports = {
             }
 
             let commandName = args[1].toLowerCase();
-            
+
             if (channel.commands.get(commandName)) {
                 channel.message(`@${userName}, that command name exists already.`);
                 return;
@@ -37,28 +37,28 @@ module.exports = {
             let arg2 = args[2].toLowerCase(),
                 permitted = [],
                 privLevel = channel.getUserPrivLevel(userName);
-            
+
             if (arg2 === 'all') {
                 permitted[0] = 'all';
             } else if (arg2 === 'mod') {
                 if (privLevel > 0) {
-                    permitted[0] = 'mod';  
+                    permitted[0] = 'mod';
                 } else {
                     channel.message(`@${userName}, you do not have permissions to use '${arg2}'`);
                     return;
                 }
             } else if (arg2 === 'streamer') {
                 if (privLevel > 1) {
-                    permitted[0] = 'streamer';  
+                    permitted[0] = 'streamer';
                 } else {
                     channel.message(`@${userName}, you do not have permissions to use '${arg2}'`);
                     return;
                 }
             } else if (arg2 === 'owner') {
                 if (privLevel > 2) {
-                    permitted[0] = 'owner';  
+                    permitted[0] = 'owner';
                 } else {
-                    channel.message(`@${userName}, you do not have permissions to use '${arg2}'`); 
+                    channel.message(`@${userName}, you do not have permissions to use '${arg2}'`);
                     return;
                 }
             } else {

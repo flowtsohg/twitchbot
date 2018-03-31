@@ -6,7 +6,7 @@ let Logger = require('./logger');
 let DB = require('./db');
 let Commands = require('./commands');
 
-class Bot extends EventEmitter {
+module.exports = class Bot extends EventEmitter {
     constructor(name, oauth, clientid) {
         super();
 
@@ -14,7 +14,7 @@ class Bot extends EventEmitter {
 
         this.db = new DB('./data', { commands: {}, aliases: {}, channels: {} });
         this.db.on('saved', () => this.log('Saved the database'));
-        
+
         this.commands = new Commands(this.db.db);
 
         this.connection = new Connection(name, oauth);
@@ -24,7 +24,7 @@ class Bot extends EventEmitter {
         this.connection.on('received', (data) => this.received(data));
         this.connection.on('sent', (data) => this.sent(data));
         this.connection.on('idle', () => this.sendBatch());
-        
+
         // Needed for Twitch API calls.
         this.clientid = clientid;
 
@@ -169,6 +169,4 @@ class Bot extends EventEmitter {
             }
         }
     }
-}
-
-module.exports = Bot;
+};

@@ -2,7 +2,7 @@ let EventEmitter = require('events');
 let fs = require('fs');
 let Timer = require('./timer');
 
-class DB extends EventEmitter {
+module.exports = class DB extends EventEmitter {
     constructor(folder, initObject) {
         super();
 
@@ -40,7 +40,7 @@ class DB extends EventEmitter {
 
     disconnect() {
         this.save();
-        
+
         this.saver.stop();
     }
 
@@ -61,6 +61,4 @@ class DB extends EventEmitter {
 
         this.emit('saved');
     }
-}
-
-module.exports = DB;
+};

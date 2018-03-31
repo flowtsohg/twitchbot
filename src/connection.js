@@ -12,13 +12,13 @@ let PRIVMSG_RE = /:(\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #(\w+) :(.+)/,
     CONNECTED_RE = /:tmi\.twitch\.tv 376 (\w+) :>/,
     USER_ROOM_STATE_RE = /:tmi\.twitch\.tv (USERSTATE|ROOMSTATE) #(\w+)/;
 
-class Connection extends EventEmitter {
+module.exports = class Connection extends EventEmitter {
     constructor(name, oauth) {
         super();
 
         this.name = name;
         this.oauth = oauth;
-        
+
         this.connecting = false;
         this.connected = false;
         this.reconnectTimeout = 5000;
@@ -72,7 +72,7 @@ class Connection extends EventEmitter {
     message(channel, message) {
         this.queue.push(`PRIVMSG #${channel} :${message}`);
     }
-    
+
     whisper(target, message) {
         this.queue.push(`PRIVMSG #jtv :/w ${target} ${message}`);
     }
@@ -108,7 +108,7 @@ class Connection extends EventEmitter {
 
     send(data) {
         this.socket.write(`${data}\r\n`);
-        
+
         // If a ping is being sent, check that within 10 seconds a pong is recieved.
         // Otherwise, the connection is assumed to be dead, and will reconnect.
         if (data === 'PING') {
@@ -172,7 +172,7 @@ class Connection extends EventEmitter {
     disconnect() {
         this.connecting = false;
         this.connected = false;
-        
+
         this.messageTimer.stop();
         this.pingTimer.stop();
 
@@ -190,26 +190,26 @@ class Connection extends EventEmitter {
         if (match) {
             for (let tag of match[1].split(';')) {
                 let [key, value] = tag.split('=');
-    
+
                 tags[key] = value;
             }
         }
-    
+
         match = line.match(PRIVMSG_RE);
         if (match) {
             return { line, tags, type: 'message', user: match[1], channel: match[2], data: match[3] };
         }
-    
+
         match = line.match(WHISPER_RE);
         if (match) {
             return { line, tags, type: 'whisper', user: match[1], target: match[2], data: match[3] };
         }
-    
+
         match = line.match(JOIN_PART_RE);
         if (match) {
             return { line, tags, type: match[2].toLowerCase(), user: match[1], channel: match[3] };
         }
-    
+
         match = line.match(MODE_RE);
         if (match) {
             return { line, tags, type: 'mode', channel: match[1], user: match[3], mode: match[2] };
@@ -242,21 +242,19 @@ class Connection extends EventEmitter {
         if (match) {
             return { line, tags, type: 'connected', user: match[1] };
         }
-    
+
         if (line.includes(':tmi.twitch.tv CAP * ACK :twitch.tv/membership')) {
             return { line, tags, type: 'membership' };
         }
-    
+
         if (line.includes(':tmi.twitch.tv CAP * ACK :twitch.tv/commands')) {
             return { line, tags, type: 'commands' }
         }
-    
+
         if (line.includes(':tmi.twitch.tv CAP * ACK :twitch.tv/tags')) {
             return { line, tags, type: 'tags' }
         }
 
         return { line, tags, type: 'other' };
     }
-}
-
-module.exports = Connection;
+};

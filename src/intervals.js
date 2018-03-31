@@ -1,7 +1,7 @@
 ﻿let EventEmitter = require('events');
 let Timer = require('./timer');
 
-class Intervals extends EventEmitter {
+module.exports = class Intervals extends EventEmitter {
     constructor(db) {
         super();
 
@@ -82,6 +82,4 @@ class Intervals extends EventEmitter {
 
         return timers.delete(name);
     }
-}
-
-module.exports = Intervals;
+};

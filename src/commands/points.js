@@ -11,12 +11,12 @@ module.exports = {
     eachUser(user) {
         user.points = 10;
     },
-    
+
     handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
-        
+
         if (args.length < 1) {
             channel.message(`@${userName}, usage: ${command.name} <op> ...`);
             channel.message(`@${userName}, ops: add, get, donate, gamble, pull, eat, top.`);
@@ -34,7 +34,7 @@ module.exports = {
                 channel.message(`@${userName}, add the given amount of ${namePlural} to the given user. Add to 'all' to add to all current chat viewers.`);
                 return;
             }
-    
+
             let arg2 = args[2],
                 amount = parseInt(arg2);
 
@@ -43,7 +43,7 @@ module.exports = {
                 return;
             }
 
-            if (amount  === 0) {
+            if (amount === 0) {
                 channel.message(`@${userName}, did nothing.`)
                 return;
             }
@@ -52,23 +52,23 @@ module.exports = {
 
             let arg1 = args[1],
                 lowerArg1 = arg1.toLowerCase();
-    
+
             if (lowerArg1 !== 'all') {
                 let target = channel.users.get(lowerArg1, true);
-    
+
                 if (!target) {
                     channel.message(`@${userName}, I don't know who "${arg1}" is.`);
                     return;
                 }
 
                 target.points += amount;
-                
+
                 channel.message(`@${userName}, added ${amount} ${singleOrPlural} to @${target.name}.`);
             } else {
                 for (let chatter of channel.users.chatters.values()) {
                     chatter.points += amount;
                 }
-    
+
                 channel.message(`@${userName}, added ${amount} ${singleOrPlural} to all chatters.`);
             }
         } else if (op === 'get') {
@@ -261,7 +261,7 @@ module.exports = {
             }
 
             user.points -= amount;
-            
+
             let results = [];
 
             for (let i = 0; i < slotCount; i++) {
@@ -286,7 +286,7 @@ module.exports = {
 
             if (multiplier > 0) {
                 let points = Math.floor(amount * multiplier);
-                
+
                 user.points += points;
 
                 channel.message(`@${userName} won ${points} ${namePlural} and now has ${user.points}.`);

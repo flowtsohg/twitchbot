@@ -4,7 +4,7 @@
 // args: list
 module.exports = {
     name: 'intervals',
-    
+
     handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
@@ -27,7 +27,7 @@ module.exports = {
             }
 
             let intervalName = args[1].toLowerCase();
-            
+
             if (channel.intervals.get(intervalName)) {
                 channel.message(`@${userName}, that interval name exists already.`);
                 return;
@@ -83,11 +83,11 @@ module.exports = {
             channel.message(`@${userName}, done.`);
         } else if (op === 'list') {
             let intervals = [];
-    
+
             for (let interval of Object.values(channel.intervals.intervals)) {
                 intervals.push(`${interval.name} (${interval.timeout})`);
             }
-    
+
             channel.message(`@${userName}, ${intervals.join(', ')}.`);
         } else {
             channel.message(`@${userName}, what is "${op}"?`);

@@ -11,7 +11,7 @@ function buildResponse(args, value, index) {
 // list
 module.exports = {
     name: 'table',
-    
+
     eachChannel(channel) {
         channel.tables = {};
     },
@@ -20,7 +20,7 @@ module.exports = {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
-        
+
         if (args.length < 1) {
             channel.message(`@${userName}, usage: ${command.name} <op> <...>`);
             channel.message(`@${userName}, available ops are: create, delete, add, remove, get, rand, list.`);
@@ -39,7 +39,7 @@ module.exports = {
             } else {
                 channel.message(`@${userName}, there are no tables.`);
             }
-            
+
             return;
         }
 
@@ -48,7 +48,7 @@ module.exports = {
                 channel.message(`@${userName}, usage: ${command.name} create <name>`);
                 return;
             }
-    
+
             let tableName = args[1].toLowerCase();
 
             if (tables[tableName]) {
@@ -63,7 +63,7 @@ module.exports = {
                 channel.message(`@${userName}, usage: ${command.name} delete <name>`);
                 return;
             }
-    
+
             let tableName = args[1].toLowerCase();
 
             if (tables[tableName]) {
@@ -78,7 +78,7 @@ module.exports = {
                 channel.message(`@${userName}, usage: ${command.name} add <name> <value>`);
                 return;
             }
-    
+
             let tableName = args[1].toLowerCase(),
                 table = tables[tableName];
 
@@ -96,13 +96,13 @@ module.exports = {
                 channel.message(`@${userName}, usage: ${command.name} remove <name> <index>`);
                 return;
             }
-    
+
             let tableName = args[1].toLowerCase(),
                 table = tables[tableName];
 
             if (table) {
                 let index = parseInt(args[2]);
-                
+
                 if (isNaN(index)) {
                     channel.message(`@${userName}, "${index}" is not a number.`);
                     return;
@@ -127,13 +127,13 @@ module.exports = {
                 channel.message(`@${userName}, use $value and $index to inject them in the response.`);
                 return;
             }
-    
+
             let tableName = args[1].toLowerCase(),
                 table = tables[tableName];
 
             if (table) {
                 let index = parseInt(args[2]);
-                
+
                 if (isNaN(index)) {
                     channel.message(`@${userName}, "${args[2]}" is not a number.`);
                     return;
@@ -144,7 +144,7 @@ module.exports = {
 
                 if (keys.length) {
                     let row = rows[index];
-                    
+
                     if (row) {
                         channel.message(`@${userName}, ${buildResponse(args.slice(3), row, index)}`);
                     } else {
@@ -162,7 +162,7 @@ module.exports = {
                 channel.message(`@${userName}, use $value and $index to inject them in the response.`);
                 return;
             }
-    
+
             let tableName = args[1].toLowerCase(),
                 table = tables[tableName];
 

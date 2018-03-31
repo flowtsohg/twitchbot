@@ -4,7 +4,7 @@ module.exports = {
     eachUser(user) {
         user.seconds = 0;
     },
-    
+
     handler(channel, data) {
         let userName = data.event.user,
             user = channel.users.get(userName);

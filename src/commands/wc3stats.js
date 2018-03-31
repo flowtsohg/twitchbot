@@ -3,7 +3,7 @@ let fetch = require('node-fetch'),
 
 function parseRealm(realm) {
     if ('northrend'.startsWith(realm)) {
-        return'northrend';
+        return 'northrend';
     } else if ('lordaeron'.startsWith(realm)) {
         return 'lordaeron';
     } else if ('azeroth'.startsWith(realm)) {
@@ -52,7 +52,7 @@ function getBnetRaceRow(rows, race) {
 // e.g.: solo 
 module.exports = {
     name: 'wc3stats',
-    
+
     handler(channel, data) {
         let command = data.command,
             user = data.event.user,
@@ -141,7 +141,7 @@ module.exports = {
 
                         let rows = ladderTable.querySelectorAll('tr'),
                             row = getBnetRaceRow(rows, race);
-                       
+
                         // If the row is not found, it means the player hasn't played with that race.
                         if (!row) {
                             channel.message(`@${user}, ${arg2} at ${realm} as ${race} - 0:0.`);

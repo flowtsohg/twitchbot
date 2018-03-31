@@ -12,12 +12,12 @@ module.exports = {
     eachChannel(channel) {
         channel.counters = {};
     },
-    
+
     handler(channel, data) {
         let command = data.command,
             userName = data.event.user,
             args = data.args;
-        
+
         if (args.length < 1) {
             channel.message(`@${userName}, usage: ${command.name} create <name>`);
             channel.message(`@${userName}, usage: ${command.name} delete <name>`);
@@ -37,7 +37,7 @@ module.exports = {
             } else {
                 channel.message(`@${userName}, there are no counters.`);
             }
-            
+
             return;
         }
 
@@ -84,7 +84,7 @@ module.exports = {
             if (counter) {
                 let arg2 = args[2],
                     amount = parseInt(arg2.toLowerCase());
-    
+
                 if (isNaN(amount)) {
                     channel.message(`@${userName}, "${arg2}" is not a number.`);
                     return;

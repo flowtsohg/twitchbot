@@ -1,8 +1,8 @@
-let twitchApi = require ('../twitchapi');
+let twitchApi = require('../twitchapi');
 
 module.exports = {
     name: 'howlong',
-    
+
     handler(channel, data) {
         let userName = data.event.user;
 
@@ -29,7 +29,7 @@ module.exports = {
                 if (years > 0) {
                     parts.push(`${years} years`);
                 }
-                    
+
                 if (monthes > 0) {
                     parts.push(`${monthes} months`);
                 }

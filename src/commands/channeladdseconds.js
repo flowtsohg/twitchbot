@@ -1,6 +1,6 @@
 module.exports = {
     name: 'channeladdseconds',
-    
+
     handler(channel, data) {
         let arg0 = data.args[0],
             amount = parseInt(arg0);

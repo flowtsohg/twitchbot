@@ -1,4 +1,4 @@
-﻿class Commands {
+﻿module.exports = class Commands {
     constructor(db, parent) {
         this.commands = db.commands;
         this.aliases = db.aliases;
@@ -38,6 +38,4 @@
 
         return command || this.commands[name];
     }
-}
-
-module.exports = Commands;
+};

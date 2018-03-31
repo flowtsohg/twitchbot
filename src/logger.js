@@ -1,6 +1,6 @@
 let fs = require('fs');
 
-class Logger  {
+module.exports = class Logger {
     constructor(folder) {
         this.folder = folder;
         this.file = `${this.getTimeStamp()}.txt`;
@@ -15,21 +15,19 @@ class Logger  {
 
     log(message) {
         let data = `[${this.getTimeStamp()}] ${message}`;
-		
-		if (this.logToFile) {
-			fs.appendFileSync(this.path, `${data}\r\n`);
-		}
-		
-		if (this.logToConsole) {
-			console.log(data);
-		}
+
+        if (this.logToFile) {
+            fs.appendFileSync(this.path, `${data}\r\n`);
+        }
+
+        if (this.logToConsole) {
+            console.log(data);
+        }
     }
 
     getTimeStamp() {
         let d = new Date();
-        
+
         return `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()} ${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.${d.getMilliseconds()}`;
     }
-}
-
-module.exports = Logger;
+};
