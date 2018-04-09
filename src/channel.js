@@ -43,7 +43,7 @@ module.exports = class Channel extends EventEmitter {
         this.intervals.on('fired', (interval) => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }));
 
         this.users = new Users(db);
-        this.users.on('new', (user) => this.eachUser(user));
+        this.users.on('added', (user) => this.eachUser(user));
 
         this.updater = new Timer(() => this.update(), 30000);
     }
@@ -78,10 +78,16 @@ module.exports = class Channel extends EventEmitter {
         this.joined = false;
 
         this.updater.stop();
-
         this.intervals.stop();
 
         this.emit('parted');
+    }
+
+    disconnected() {
+        this.joined = false;
+
+        this.updater.stop();
+        this.intervals.stop();
     }
 
     message(message) {
@@ -262,12 +268,6 @@ module.exports = class Channel extends EventEmitter {
         if (type === 'message') {
             if (this.settings.commandsEnabled) {
                 this.handleCommand(event);
-            }
-        } else if (type === 'join') {
-            if (user === this.bot.connection.name) {
-                this.join();
-
-                this.emit('joined', event);
             }
         } else if (type === 'part') {
             this.users.remove(user);

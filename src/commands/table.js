@@ -13,7 +13,9 @@ module.exports = {
     name: 'table',
 
     eachChannel(channel) {
-        channel.tables = {};
+        if (!channel.tables) {
+            channel.tables = {};
+        }
     },
 
     handler(channel, data) {
@@ -35,7 +37,7 @@ module.exports = {
             let keys = Object.keys(tables);
 
             if (keys.length) {
-                channel.message(`@${userName}, ${Object.keys(tables).join(', ')}`);
+                channel.message(`@${userName}, ${keys.join(', ')}`);
             } else {
                 channel.message(`@${userName}, there are no tables.`);
             }

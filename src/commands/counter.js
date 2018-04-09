@@ -10,7 +10,9 @@ module.exports = {
     name: 'counter',
 
     eachChannel(channel) {
-        channel.counters = {};
+        if (!channel.counters) {
+            channel.counters = {};
+        }
     },
 
     handler(channel, data) {
@@ -33,7 +35,7 @@ module.exports = {
             let keys = Object.keys(counters);
 
             if (keys.length) {
-                channel.message(`@${userName}, ${Object.keys(counters).join(', ')}.`);
+                channel.message(`@${userName}, ${keys.join(', ')}.`);
             } else {
                 channel.message(`@${userName}, there are no counters.`);
             }

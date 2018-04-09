@@ -18,12 +18,13 @@ module.exports = class Bot extends EventEmitter {
         this.commands = new Commands(this.db.db);
 
         this.connection = new Connection(name, oauth);
-        this.connection.on('connecting', () => this.log('Trying to connect...'));
-        this.connection.on('connected', () => this.log('Connected'));
-        this.connection.on('reconnecting', (timeout) => this.log(`An error occured, trying to reconnect in ${timeout / 1000} seconds`));
+        this.connection.on('connecting', () => this.log('Connecting...'));
+        this.connection.on('connected', () => this.connected());
+        this.connection.on('reconnecting', (timeout, reason) => this.reconnecting(timeout, reason));
         this.connection.on('received', (data) => this.received(data));
         this.connection.on('sent', (data) => this.sent(data));
         this.connection.on('idle', () => this.sendBatch());
+        this.connection.on('joined', (channel) => this.joinedChannel(channel));
 
         // Needed for Twitch API calls.
         this.clientid = clientid;
@@ -95,8 +96,6 @@ module.exports = class Bot extends EventEmitter {
                         }
                     };
 
-                    this.eachChannel(db);
-
                     channels[name] = db;
                 }
 
@@ -104,7 +103,11 @@ module.exports = class Bot extends EventEmitter {
 
                 this.channels.set(name, channel);
 
+                this.eachChannel(channel.db);
+
                 this.connection.join(name);
+
+                this.log(`Joining #${name}...`);
             }
 
             return channel;
@@ -143,18 +146,41 @@ module.exports = class Bot extends EventEmitter {
         this.log(`> ${data}`);
     }
 
+    // Called when Twitch sends a successful connection.
+    connected() {
+        this.log('Connected');
+
+        // If there are any channels, rejoin them.
+        // This will happen if the bot reconnects for any reason.
+        for (let channel of this.channels.values()) {
+            this.log(`Rejoining #${channel.name}...`);
+
+            this.connection.join(channel.name);
+        }
+    }
+
+    reconnecting(timeout, reason) {
+        this.log(`Reconnecting in ${timeout / 1000} seconds. Reason: ${reason}`);
+
+        for (let channel of this.channels.values()) {
+            channel.disconnected();
+        }
+    }
+
+    joinedChannel(channel) {
+        this.log(`Joined #${channel}`);
+
+        this.channels.get(channel).join();
+    }
+
     received(event) {
         this.log(`< ${event.line}`);
 
         if (event.channel) {
             let channel = this.channels.get(event.channel);
+
             if (channel) {
                 channel.handleEvent(event);
-            }
-        } else if (event.type === 'connected') {
-            // If there are already channels, e.g. in case the bot reconnected, rejoin them.
-            for (let channel of this.channels.values()) {
-                this.connection.join(channel.name);
             }
         }
 

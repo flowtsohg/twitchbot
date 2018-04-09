@@ -27,17 +27,19 @@ module.exports = class Users extends EventEmitter {
         if (user) {
             chatters.set(name, user);
             return;
+        } else {
+            // Otherwise this is a new user, so create it, add it to the DB, and add it to the chatters.
+            user = { name };
+
+            // Allows commands to setup per-user data.
+            // See Channel.eachUser().
+            this.emit('new', user);
+
+            users[name] = user;
+            chatters.set(name, user);
         }
 
-        // Otherwise this is a new user, so create it, add it to the DB, and add it to the chatters.
-        user = { name };
-
-        // Allows commands to setup per-user data.
-        // See Channel.eachUser().
-        this.emit('new', user);
-
-        users[name] = user;
-        chatters.set(name, user);
+        this.emit('added', user);
     }
 
     setMod(name, mod) {

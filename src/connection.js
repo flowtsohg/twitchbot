@@ -98,9 +98,20 @@ module.exports = class Connection extends EventEmitter {
             clearTimeout(this.pongTimeout);
         }
 
+        // Twitch decided a reconnection is needed for some reason.
+        if (data.type === 'reconnect') {
+            this.reconnect('Twitch wanted to reconnect');
+        }
+
         // Once the bot is connected, let it send messages.
         if (data.type === 'connected') {
+            this.emit('connected');
+
             this.messageTimer.start();
+        }
+
+        if (data.type === 'join' && data.user === this.name) {
+            this.emit('joined', data.channel);
         }
 
         this.emit('received', data);
@@ -112,7 +123,7 @@ module.exports = class Connection extends EventEmitter {
         // If a ping is being sent, check that within 10 seconds a pong is recieved.
         // Otherwise, the connection is assumed to be dead, and will reconnect.
         if (data === 'PING') {
-            this.pongTimeout = setTimeout(() => this.reconnect(), 10000);
+            this.pongTimeout = setTimeout(() => this.reconnect('Twitch failed to pong'), 10000);
         }
 
         this.emit('sent', data);
@@ -142,8 +153,6 @@ module.exports = class Connection extends EventEmitter {
                 this.send(`CAP REQ :twitch.tv/tags`);
 
                 this.pingTimer.start();
-
-                this.emit('connected');
             }
         });
     }
@@ -166,7 +175,7 @@ module.exports = class Connection extends EventEmitter {
 
         setTimeout(() => this.connect(), this.reconnectTimeout);
 
-        this.emit('reconnecting', this.reconnectTimeout);
+        this.emit('reconnecting', this.reconnectTimeout, e);
     }
 
     disconnect() {
@@ -248,11 +257,15 @@ module.exports = class Connection extends EventEmitter {
         }
 
         if (line.includes(':tmi.twitch.tv CAP * ACK :twitch.tv/commands')) {
-            return { line, tags, type: 'commands' }
+            return { line, tags, type: 'commands' };
         }
 
         if (line.includes(':tmi.twitch.tv CAP * ACK :twitch.tv/tags')) {
-            return { line, tags, type: 'tags' }
+            return { line, tags, type: 'tags' };
+        }
+
+        if (line.includes(':tmi.twitch.tv RECONNECT')) {
+            return { line, tags, type: 'reconnect' };
         }
 
         return { line, tags, type: 'other' };
