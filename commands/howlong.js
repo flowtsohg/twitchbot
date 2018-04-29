@@ -1,4 +1,4 @@
-let twitchApi = require('../twitchapi');
+let twitchApi = require('../src/twitchapi');
 
 module.exports = {
     name: 'howlong',

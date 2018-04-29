@@ -13,5 +13,7 @@ module.exports = [
     require('./table'),
     require('./commands'),
     require('./intervals'),
-    require('./counter')
+    require('./counter'),
+    require('./giveaway'),
+    require('./livetime')
 ];

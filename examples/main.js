@@ -6,6 +6,12 @@ let Bot = require('twitch-bot');
 // You can get the ID from here: https://dev.twitch.tv/dashboard/apps
 let bot = new Bot('name', 'oauth', 'clientid');
 
+// All built-in commands.
+let nativeCommands = require('../commands');
+
+// Add native commands to the bot that can be used by chat commands.
+bot.addNatives(nativeCommands);
+
 bot.connect();
 
 // When the bot is connected...

@@ -122,7 +122,7 @@ module.exports = {
                     channel.message(`@${user}, ${arg2} at ${realm} ${soloWins}:${soloLosses}.`);
                 });
         } else {
-            fetch(`http://classic.battle.net/war3/ladder/war3-player-profile.aspx?Gateway=${realm}&PlayerName=${arg2}`)
+            fetch(`http://classic.battle.net/war3/ladder/w3xp-player-profile.aspx?Gateway=${realm}&PlayerName=${arg2}`)
                 .then((response) => {
                     return response.text();
                 })

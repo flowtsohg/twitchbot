@@ -20,6 +20,7 @@ module.exports = class Channel extends EventEmitter {
 
         // Live status.
         this.isLive = false;
+        this.wentLiveOn = 0;
 
         // Outgoing hosts.
         this.isHosting = false;
@@ -344,8 +345,16 @@ module.exports = class Channel extends EventEmitter {
                         this.hosts.clear();
                     }
 
+                    let stream = json.stream;
+
+                    if (stream) {
+                        this.wentLiveOn = new Date(stream.created_at).getTime();
+                    } else {
+                        this.wentLiveOn = 0;
+                    }
+                    
                     // If live the stream object is given, otherwise it will be undefined.
-                    this.emit('live', json.stream)
+                    this.emit('live', stream)
                 }
             }
         }

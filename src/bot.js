@@ -1,7 +1,6 @@
 let EventEmitter = require('events');
 let Connection = require('./connection');
 let Channel = require('./channel');
-let nativeCommands = require('./commands/');
 let Logger = require('./logger');
 let DB = require('./db');
 let Commands = require('./commands');
@@ -32,8 +31,10 @@ module.exports = class Bot extends EventEmitter {
         this.channels = new Map();
 
         this.nativeCommands = new Map();
+    }
 
-        for (let command of nativeCommands) {
+    addNatives(commands) {
+        for (let command of commands) {
             this.nativeCommands.set(command.name, command);
         }
     }
