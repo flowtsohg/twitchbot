@@ -1,8 +1,8 @@
 {
   "name": "twitchbot",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "A simple NodeJS bot for Twitch",
-  "main": "src/bot.js",
+  "main": "./index.js",
   "directories": {
     "example": "examples"
   },

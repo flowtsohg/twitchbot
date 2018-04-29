@@ -1,4 +1,4 @@
-let Bot = require('twitch-bot');
+let { Bot, builtinCommands, twitchApi } = require('twitchbot');
 
 // Make a new bot and connect to Twitch using a name and an OAuth token.
 // You can get the token here: http://www.twitchapps.com/tmi/
@@ -6,11 +6,9 @@ let Bot = require('twitch-bot');
 // You can get the ID from here: https://dev.twitch.tv/dashboard/apps
 let bot = new Bot('name', 'oauth', 'clientid');
 
-// All built-in commands.
-let nativeCommands = require('../commands');
-
 // Add native commands to the bot that can be used by chat commands.
-bot.addNatives(nativeCommands);
+// builtinCommands references all of the builtin JS commands in the commands folder.
+bot.addNatives(builtinCommands);
 
 bot.connect();
 
