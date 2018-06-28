@@ -259,7 +259,6 @@ module.exports = class Channel extends EventEmitter {
 
         // The ROOMSTATE event doesn't contain a user.
         if (user) {
-            console.log('adding user', user)
             // While the JOIN event should have been used to check if a user joined, it doesn't work like that.
             // Twitch batches join/part events and sends them sometimes after a long time.
             // This means that a user can join the channel and send a message long before the join event comes through.
