@@ -14,6 +14,7 @@ module.exports = [
     require('./commands'),
     require('./intervals'),
     require('./counter'),
-    require('./giveaway'),
-    require('./livetime')
+    require('./livetime'),
+    require('./savedb'),
+    require('./eval')
 ];
