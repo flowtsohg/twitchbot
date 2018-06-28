@@ -3,7 +3,8 @@ module.exports = {
     name: 'autocomplete',
 
     handler(channel, data) {
-        let userName = data.event.user,
+        let user = channel.users.get(data.event.user),
+            userName = user.displayName || user.name,
             args = data.args;
 
         if (args.length < 1) {
@@ -16,7 +17,7 @@ module.exports = {
             target = channel.users.get(targetName, true);
 
         if (target) {
-            channel.message(`@${userName}, I see "${targetName}" as ${target.name}.`);
+            channel.message(`@${userName}, I see "${targetName}" as ${target.displayName || target.name}.`);
         } else {
             channel.message(`@${userName}, I don't know who "${targetName}" is.`);
         }

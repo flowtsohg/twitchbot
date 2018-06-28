@@ -4,7 +4,8 @@ module.exports = {
     name: 'livetime',
 
     handler(channel, data) {
-        let userName = data.event.user;
+        let user = channel.users.get(data.event.user),
+            userName = user.displayName || user.name;
 
         if (channel.isLive) {
             let d = new Date(Date.now() - channel.wentLiveOn);

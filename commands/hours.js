@@ -6,8 +6,8 @@ module.exports = {
     },
 
     handler(channel, data) {
-        let userName = data.event.user,
-            user = channel.users.get(userName);
+        let user = channel.users.get(data.event.user),
+            userName = user.displayName || user.name;
 
         channel.message(`@${userName}, ${Math.floor(user.seconds / 360) / 10} hours.`);
     }

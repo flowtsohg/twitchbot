@@ -17,7 +17,8 @@ module.exports = {
 
     handler(channel, data) {
         let command = data.command,
-            userName = data.event.user,
+            user = channel.users.get(data.event.user),
+            userName = user.displayName || user.name,
             args = data.args;
 
         if (args.length < 1) {
@@ -54,7 +55,7 @@ module.exports = {
             if (counters[counterName]) {
                 channel.message(`@${userName}, that counter exists already.`);
             } else {
-                counters[counterName] = { value: 0 };
+                counters[counterName] = {value: 0};
 
                 channel.message(`@${userName}, created counter "${counterName}".`);
             }

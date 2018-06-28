@@ -9,14 +9,20 @@ module.exports = class Users extends EventEmitter {
         this.mods = new Set();
     }
 
-    add(name) {
+    add(displayName) {
         // All Twitch names are lower case.
-        name = name.toLowerCase();
+        let name = displayName.toLowerCase();
 
         // If this user is a chatter, there is no need to do anything.
-        let chatters = this.chatters;
+        let chatters = this.chatters,
+            chatter = chatters.get(name);
 
-        if (chatters.has(name)) {
+        if (chatter) {
+            // Update the display name if needed.
+            if (displayName !== name) {
+                chatter.displayName = displayName;
+            }
+
             return;
         }
 
@@ -29,7 +35,7 @@ module.exports = class Users extends EventEmitter {
             return;
         } else {
             // Otherwise this is a new user, so create it, add it to the DB, and add it to the chatters.
-            user = { name };
+            user = {name};
 
             // Allows commands to setup per-user data.
             // See Channel.eachUser().
@@ -37,6 +43,11 @@ module.exports = class Users extends EventEmitter {
 
             users[name] = user;
             chatters.set(name, user);
+        }
+
+        // Update the display name if needed.
+        if (displayName !== name) {
+            user.displayName = displayName;
         }
 
         this.emit('added', user);

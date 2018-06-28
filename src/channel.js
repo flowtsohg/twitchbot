@@ -41,7 +41,7 @@ module.exports = class Channel extends EventEmitter {
         this.lastCommandTime = 0;
 
         this.intervals = new Intervals(db);
-        this.intervals.on('fired', (interval) => this.runCommand({ command: interval, args: this.buildCommandArgs(interval) }));
+        this.intervals.on('fired', (interval) => this.runCommand({command: interval, args: this.buildCommandArgs(interval)}));
 
         this.users = new Users(db);
         this.users.on('added', (user) => this.eachUser(user));
@@ -102,6 +102,8 @@ module.exports = class Channel extends EventEmitter {
     }
 
     getUserPrivLevel(userName) {
+        userName = userName.toLowerCase();
+
         // Owner.
         if (userName === this.bot.connection.name) {
             return 3;
@@ -119,6 +121,8 @@ module.exports = class Channel extends EventEmitter {
 
     // See if a user matches any of the tokens in a command, and thus is allowed to run it.
     getPrivToken(userName, command) {
+        userName = userName.toLowerCase();
+
         for (let token of command.permitted) {
             if (token === userName) {
                 return userName;
@@ -240,7 +244,7 @@ module.exports = class Channel extends EventEmitter {
 
                 // But only run it if the user is allowed to.
                 if (this.isPrivForCommand(event.user, command)) {
-                    this.runCommand({ command, event, args: this.buildCommandArgs(command, event) });
+                    this.runCommand({command, event, args: this.buildCommandArgs(command, event)});
                 } else {
                     this.message(`@${event.user}, you are not allowed to use that.`);
                 }
@@ -251,10 +255,11 @@ module.exports = class Channel extends EventEmitter {
     handleEvent(event) {
         let type = event.type,
             tags = event.tags,
-            user = event.user || tags['display-name'];
+            user = tags['display-name'] || event.user;
 
         // The ROOMSTATE event doesn't contain a user.
         if (user) {
+            console.log('adding user', user)
             // While the JOIN event should have been used to check if a user joined, it doesn't work like that.
             // Twitch batches join/part events and sends them sometimes after a long time.
             // This means that a user can join the channel and send a message long before the join event comes through.
@@ -352,7 +357,7 @@ module.exports = class Channel extends EventEmitter {
                     } else {
                         this.wentLiveOn = 0;
                     }
-                    
+
                     // If live the stream object is given, otherwise it will be undefined.
                     this.emit('live', stream)
                 }

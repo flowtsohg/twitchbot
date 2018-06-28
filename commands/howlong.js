@@ -4,16 +4,17 @@ module.exports = {
     name: 'howlong',
 
     handler(channel, data) {
-        let userName = data.event.user;
+        let user = channel.users.get(data.event.user),
+            userName = user.displayName || user.name;
 
         if (channel.name === userName) {
-            channel.message(`@${userName} is following ${userName} since birth.`);
+            channel.message(`@${userName} is following #${userName} since birth.`);
             return;
         }
 
         twitchApi.getUserFollow(channel.bot.clientid, channel.name, userName)
             .catch((reason) => {
-                channel.message(`@${userName} is not following ${channel.name}.`);
+                channel.message(`@${userName} is not following #${channel.name}.`);
             })
             .then((json) => {
                 let followDate = new Date(json.created_at),

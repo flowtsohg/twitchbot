@@ -4,7 +4,8 @@ module.exports = {
 
     handler(channel, data) {
         let command = data.command,
-            userName = data.event.user,
+            user = channel.users.get(data.event.user),
+            userName = user.displayName || user.name,
             args = data.args;
 
         if (args.length < 1) {
@@ -20,21 +21,22 @@ module.exports = {
             return;
         }
 
-        if (userName === target.name) {
+        if (user.name === target.name) {
             channel.message(`@${userName}, you are special.`);
             return;
         }
 
-        let privLevel = channel.getUserPrivLevel(target.name);
+        let privLevel = channel.getUserPrivLevel(target.name),
+            targetName = target.displayName || target.name;
 
         if (privLevel === 0) {
-            channel.message(`@${target.name} is a chatter.`);
+            channel.message(`@${targetName} is a chatter.`);
         } else if (privLevel === 1) {
-            channel.message(`@${target.name} is a moderator.`);
+            channel.message(`@${targetName} is a moderator.`);
         } else if (privLevel === 2) {
-            channel.message(`@${target.name} is the streamer.`);
+            channel.message(`@${targetName} is the streamer.`);
         } else if (privLevel === 3) {
-            channel.message(`@${target.name} is the owner.`);
+            channel.message(`@${targetName} is the owner.`);
         }
     }
 };

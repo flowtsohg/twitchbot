@@ -14,7 +14,8 @@ module.exports = {
 
     handler(channel, data) {
         let command = data.command,
-            userName = data.event.user,
+            user = channel.users.get(data.event.user),
+            userName = user.displayName || user.name,
             args = data.args;
 
         if (args.length < 1) {
@@ -89,10 +90,10 @@ module.exports = {
             let amount = target.points,
                 singleOrPlural = (amount === 1) ? nameSingle : namePlural;
 
-            if (userName === target.name) {
+            if (user.name === target.name) {
                 channel.message(`@${userName}, you have ${amount} ${singleOrPlural}.`);
             } else {
-                channel.message(`@${target.name} has ${amount} ${singleOrPlural}.`);
+                channel.message(`@${target.displayName || target.name} has ${amount} ${singleOrPlural}.`);
             }
         } else if (op === 'donate') {
             if (args.length < 3) {
@@ -101,8 +102,7 @@ module.exports = {
                 return;
             }
 
-            let user = channel.users.get(userName),
-                targetName = args[1],
+            let targetName = args[1],
                 target = channel.users.get(targetName, true);
 
             if (!target) {
@@ -110,7 +110,7 @@ module.exports = {
                 return;
             }
 
-            if (userName === target.name) {
+            if (user.name === target.name) {
                 channel.message(`@${userName}, nope.`);
                 return;
             }
@@ -142,7 +142,7 @@ module.exports = {
                 user.points -= amount;
                 target.points += amount;
 
-                channel.message(`@${userName} donated ${amount} ${singleOrPlural} to @${target.name}.`);
+                channel.message(`@${userName} donated ${amount} ${singleOrPlural} to @${target.displayName || target.name}.`);
             }
         } else if (op === 'gamble') {
             if (args.length < 2) {
@@ -151,8 +151,7 @@ module.exports = {
                 return;
             }
 
-            let user = channel.users.get(userName),
-                arg1 = args[1].toLowerCase(),
+            let arg1 = args[1].toLowerCase(),
                 amount = 0;
 
             if (arg1 === 'all') {
@@ -237,8 +236,6 @@ module.exports = {
             let amountArg = args[3 + slotCount - 1 + optionCount].toLowerCase(),
                 amount;
 
-            let user = channel.users.get(userName);
-
             if (amountArg === 'all') {
                 amount = user.points;
             } else {
@@ -304,8 +301,7 @@ module.exports = {
                 return;
             }
 
-            let user = channel.users.get(userName),
-                arg1 = args[1].toLowerCase(),
+            let arg1 = args[1].toLowerCase(),
                 amount;
 
             if (arg1 === 'all') {
@@ -355,7 +351,7 @@ module.exports = {
 
             let top = Object.values(channel.users.users).slice().sort((a, b) => b.points - a.points).slice(0, amount).filter((user) => user.points > 0);
 
-            channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.name} (${a.points})`).join(', ')}.`)
+            channel.message(`@${userName}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.displayName || a.name} (${a.points})`).join(', ')}.`)
         } else {
             channel.message(`@${userName}, what is "${op}"?`);
         }
