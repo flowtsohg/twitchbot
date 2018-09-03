@@ -64,7 +64,7 @@ module.exports = {
 
                 target.points += amount;
 
-                channel.message(`@${userName}, added ${amount} ${singleOrPlural} to @${target.name}.`);
+                channel.message(`@${userName}, added ${amount} ${singleOrPlural} to @${target.displayName || target.name}.`);
             } else {
                 for (let chatter of channel.users.chatters.values()) {
                     chatter.points += amount;

@@ -47,7 +47,12 @@ module.exports = {
                 return;
             }
 
-            channel.intervals.add(intervalName, timeout, args.slice(3).join(' '));
+            let timer = channel.intervals.add(intervalName, timeout, args.slice(3).join(' '));
+
+            // Start the timer if the interval was actually added.
+            if (timer) {
+                timer.start();
+            }
 
             channel.message(`@${userName}, done.`);
         } else if (op === 'edit') {
@@ -82,6 +87,21 @@ module.exports = {
             channel.intervals.remove(intervalName);
 
             channel.message(`@${userName}, done.`);
+        } else if (op === 'inspect') {
+            if (args.length < 2) {
+                channel.message(`@${userName}, usage: ${command.name} inspect <name>`);
+                return;
+            }
+
+            let arg1 = args[1],
+                interval = channel.intervals.get(arg1.toLowerCase());
+
+            if (!interval) {
+                channel.message(`@${userName}, that interval does not exist.`);
+                return;
+            }
+
+            channel.message(`@${userName} ${interval.response}`);
         } else if (op === 'list') {
             let intervals = [];
 

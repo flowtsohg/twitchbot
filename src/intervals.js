@@ -25,15 +25,15 @@ module.exports = class Intervals extends EventEmitter {
 
             intervals[name] = interval;
 
-            this.addTimer(interval);
-
-            return;
+            return this.addTimer(interval);
         }
 
         let interval = intervals[name];
 
         interval.timeout = timeout;
         interval.response = response;
+
+        return null;
     }
 
     remove(name) {
@@ -66,10 +66,10 @@ module.exports = class Intervals extends EventEmitter {
 
             timers.set(interval.name, timer);
 
-            return true;
+            return timer;
         }
 
-        return false;
+        return null;
     }
 
     removeTimer(name) {
