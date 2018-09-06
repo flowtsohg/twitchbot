@@ -5,49 +5,59 @@ module.exports = {
 
     handler(channel, data) {
         let user = channel.users.get(data.event.user),
-            userName = user.displayName || user.name;
+            userName = user.displayName || user.name,
+            args = data.args,
+            targetName = userName;
 
-        if (channel.name === userName) {
-            channel.message(`@${userName} is following #${userName} since birth.`);
+        if (args.length) {
+            targetName = args[0];
+        }
+
+        if (channel.name === targetName.toLowerCase()) {
+            channel.message(`@${targetName} is following #${channel.name} since birth.`);
             return;
         }
 
-        twitchApi.getUserFollow(channel.bot.clientid, channel.name, userName)
+        twitchApi.getUserFollow(channel.bot.clientid, channel.name, targetName)
             .catch((reason) => {
-                channel.message(`@${userName} is not following #${channel.name}.`);
+                channel.message(`@${targetName} is not following #${channel.name}.`);
             })
             .then((json) => {
-                let followDate = new Date(json.created_at),
-                    d = new Date(Date.now() - followDate);
+                if (json.status === 404) {
+                    channel.message(`@${targetName} is not following #${channel.name}.`);
+                } else {
+                    let followDate = new Date(json.created_at),
+                        d = new Date(Date.now() - followDate);
 
-                let years = d.getUTCFullYear() - 1970,
-                    monthes = d.getUTCMonth(),
-                    days = d.getUTCDate(),
-                    hours = d.getUTCHours(),
-                    minutes = d.getUTCMinutes(),
-                    parts = [];
+                    let years = d.getUTCFullYear() - 1970,
+                        monthes = d.getUTCMonth(),
+                        days = d.getUTCDate(),
+                        hours = d.getUTCHours(),
+                        minutes = d.getUTCMinutes(),
+                        parts = [];
 
-                if (years > 0) {
-                    parts.push(`${years} years`);
+                    if (years > 0) {
+                        parts.push(`${years} years`);
+                    }
+
+                    if (monthes > 0) {
+                        parts.push(`${monthes} months`);
+                    }
+
+                    if (days > 0) {
+                        parts.push(`${days} days`);
+                    }
+
+                    if (hours > 0) {
+                        parts.push(`${hours} hours`);
+                    }
+
+                    if (minutes > 0) {
+                        parts.push(`${minutes} minutes`);
+                    }
+
+                    channel.message(`@${targetName} has been following #${channel.name} for ${parts.join(', ')}.`);
                 }
-
-                if (monthes > 0) {
-                    parts.push(`${monthes} months`);
-                }
-
-                if (days > 0) {
-                    parts.push(`${days} days`);
-                }
-
-                if (hours > 0) {
-                    parts.push(`${hours} hours`);
-                }
-
-                if (minutes > 0) {
-                    parts.push(`${minutes} minutes`);
-                }
-
-                channel.message(`@${userName} has been following #${channel.name} for ${parts.join(', ')}.`);
             })
     }
 };
