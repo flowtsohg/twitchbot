@@ -195,8 +195,7 @@ module.exports = class Channel extends EventEmitter {
     }
 
     handleCommand(event) {
-        let message = event.data,
-            command = this.commands.get(message.split(' ', 1)[0].toLowerCase());
+        let command = this.commands.get(event.data.split(' ', 1)[0].toLowerCase());
 
         if (command) {
             let t = Date.now();

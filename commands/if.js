@@ -49,7 +49,7 @@ module.exports = {
         } else {
             return;
         }
-
-        channel.runCommand(data);
+        
+        channel.runCommand({response: args.join(' ')}, event);
     }
 };
