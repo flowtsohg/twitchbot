@@ -41,7 +41,7 @@ module.exports = class Channel extends EventEmitter {
         this.lastCommandTime = 0;
 
         this.intervals = new Intervals(db);
-        this.intervals.on('fired', (interval) => this.runCommand({command: interval, args: this.buildCommandArgs(interval)}));
+        this.intervals.on('fired', (interval) => this.runCommand(interval));
 
         this.users = new Users(db);
         this.users.on('added', (user) => this.eachUser(user));
@@ -152,83 +152,46 @@ module.exports = class Channel extends EventEmitter {
         return !!this.getPrivToken(userName, command) || userName === this.bot.name;
     }
 
-    buildCommandArgs(command, event) {
-        let args = command.response.split(' ');
+    handleReplacements(data, event) {
+        data = data.trim();
 
         if (event) {
-            let eventArgs = event.data.split(' ').slice(1),
-                elementsToRemove = [];
+            let args = event.data.split(' ').slice(1);
 
-            for (let i = 0, l = args.length; i < l; i++) {
-                let arg = args[i];
+            data = data.replace(/\$arg(\d+)/g, (match, index) => {
+                return args[parseInt(index)] || '';
+            });
 
-                // Replace $argN with the Nth event argument.
-                let match = arg.match(/\$arg(\d+)/);
-
-                if (match) {
-                    let index = parseInt(match[1], 10),
-                        eventArg = eventArgs[index];
-
-                    if (eventArg) {
-                        args[i] = eventArg;
-
-                        elementsToRemove.push(index)
-                    }
-                }
-
-                // Handle interpolations.
-                switch (arg) {
-                    case '$user':
-                        args[i] = event.user;
-                        break;
-
-                    case '$streamer':
-                        args[i] = this.name;
-                        break;
-
-                    case '$owner':
-                        args[i] = this.bot.connection.name;
-                        break;
-
-                    case '$hosttarget':
-                        args[i] = this.hostTarget;
-                        break;
-                }
-            }
-
-            // Remove duplicates and sort.
-            elementsToRemove = [...new Set(elementsToRemove)].sort((a, b) => b - a);
-
-            // Remove event arguments that were injected.
-            for (let i of elementsToRemove) {
-                eventArgs.splice(i, 1);
-            }
-
-            args.push(...eventArgs);
+            data = data.replace(/\$args/g, args.join(' '));
+            data = data.replace(/\$user/g, event.user);
         }
 
-        return args;
+        data = data.replace(/\$streamer/g, this.name);
+        data = data.replace(/\$owner/g, this.bot.connection.name);
+
+        return data.trim();
     }
 
-    runCommand(data) {
-        let args = data.args,
-            arg0 = args[0];
+    runCommand(command, event) {
+        let message = this.handleReplacements(command.response, event);
 
-        if (arg0.startsWith('$')) {
-            let command = this.bot.nativeCommands.get(arg0.substring(1));
+        if (message.startsWith('$')) {
+            let args = message.split(' '),
+                arg0 = args[0],
+                nativeCommand = this.bot.nativeCommands.get(arg0.substring(1));
 
-            if (command) {
+            if (nativeCommand) {
                 // Remove the native command name.
                 args.shift();
 
                 // Run the command.
-                command.handler(this, data);
+                nativeCommand.handler(this, command, event, args);
 
                 return;
             }
         }
 
-        this.message(args.join(' '));
+        this.message(message);
     }
 
     handleCommand(event) {
@@ -244,7 +207,7 @@ module.exports = class Channel extends EventEmitter {
 
                 // But only run it if the user is allowed to.
                 if (this.isPrivForCommand(event.user, command)) {
-                    this.runCommand({command, event, args: this.buildCommandArgs(command, event)});
+                    this.runCommand(command, event);
                 } else {
                     this.message(`@${event.user}, you are not allowed to use that.`);
                 }

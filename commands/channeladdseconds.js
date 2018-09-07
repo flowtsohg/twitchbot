@@ -1,12 +1,12 @@
 module.exports = {
     name: 'channeladdseconds',
 
-    handler(channel, data) {
-        let arg0 = data.args[0],
+    handler(channel, command, event, args) {
+        let arg0 = args[0],
             amount = parseInt(arg0);
 
         if (isNaN(amount)) {
-            channel.message(`Error at ${data.command.name}: "${arg0}" is not a number.`);
+            channel.message(`Error at ${command.name}: "${arg0}" is not a number.`);
             return;
         }
 

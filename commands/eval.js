@@ -1,9 +1,9 @@
 module.exports = {
     name: 'eval',
 
-    handler(channel, data) {
+    handler(channel, command, event, args) {
         try {
-            channel.message(eval(`(${data.args.join(' ')})`));
+            channel.message(eval(`(${args.join(' ')})`));
         } catch (e) {
             channel.message(`Failed: ${e}`);
         }

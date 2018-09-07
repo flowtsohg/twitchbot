@@ -1,7 +1,7 @@
 module.exports = {
     name: 'savedb',
 
-    handler(channel, data) {
+    handler(channel, command, event, args) {
         channel.bot.db.save();
     }
 };

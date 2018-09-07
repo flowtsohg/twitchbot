@@ -2,8 +2,8 @@
 module.exports = {
     name: 'mute',
 
-    handler(channel, data) {
-        if (data.args.length > 0) {
+    handler(channel, command, event, args) {
+        if (args.length > 0) {
             channel.muted = true;
             channel.queue.length = 0;
         } else {

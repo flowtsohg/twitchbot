@@ -12,15 +12,13 @@ module.exports = {
         user.points = 10;
     },
 
-    handler(channel, data) {
-        let command = data.command,
-            user = channel.users.get(data.event.user),
-            userName = user.displayName || user.name,
-            args = data.args;
+    handler(channel, command, event, args) {
+        let user = channel.users.get(event.user),
+            userName = user.displayName || user.name;
 
         if (args.length < 1) {
-            channel.message(`@${userName}, usage: ${command.name} <op> ...`);
-            channel.message(`@${userName}, ops: add, get, donate, gamble, pull, eat, top.`);
+            channel.message(`@${userName}, usage: ${command.name} <operation> ...`);
+            channel.message(`@${userName}, possible operations: add, get, donate, gamble, pull, eat, top.`);
             return;
         }
 

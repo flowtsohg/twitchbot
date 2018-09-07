@@ -18,11 +18,9 @@ function parseRealm(realm) {
 module.exports = {
     name: 'wc3stats',
 
-    handler(channel, data) {
-        let command = data.command,
-            user = channel.users.get(data.event.user),
-            userName = user.displayName || user.name,
-            args = data.args;
+    handler(channel, command, event, args) {
+        let user = channel.users.get(event.user),
+            userName = user.displayName || user.name;
 
         if (args.length < 2) {
             channel.message(`@${userName}, usage: ${command.name} <realm> <user>`);

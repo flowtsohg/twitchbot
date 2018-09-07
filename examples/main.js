@@ -56,7 +56,8 @@ bot.on('connected', (bot, event) => {
     settings.pointsNamePlural = 'memes';
 
     // Channel specific commands are added exactly like global commands.
-    channel.commands.add('!points', ['all'], '$points get');
+    // Note the use of $user, which will be replaced with the user who ran the command.
+    channel.commands.add('!points', ['all'], '$points get $user');
     channel.commands.add('!howlong', ['all'], '$howlong');
 
     // You can add aliases to commands rather than redefining them.

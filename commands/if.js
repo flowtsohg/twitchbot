@@ -6,9 +6,7 @@
 module.exports = {
     name: 'if',
 
-    handler(channel, data) {
-        let args = data.args;
-
+    handler(channel, command, event, args) {
         if (args.length < 1) {
             return;
         }

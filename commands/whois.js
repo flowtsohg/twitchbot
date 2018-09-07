@@ -2,11 +2,9 @@
 module.exports = {
     name: 'whois',
 
-    handler(channel, data) {
-        let command = data.command,
-            user = channel.users.get(data.event.user),
-            userName = user.displayName || user.name,
-            args = data.args;
+    handler(channel, command, event, args) {
+        let user = channel.users.get(event.user),
+            userName = user.displayName || user.name;
 
         if (args.length < 1) {
             channel.message(`@${userName}, usage: ${command.name} <user>`);
@@ -28,6 +26,8 @@ module.exports = {
 
         let privLevel = channel.getUserPrivLevel(target.name),
             targetName = target.displayName || target.name;
+
+        console.log(target)
 
         if (privLevel === 0) {
             channel.message(`@${targetName} is a chatter.`);

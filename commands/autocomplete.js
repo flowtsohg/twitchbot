@@ -2,13 +2,12 @@
 module.exports = {
     name: 'autocomplete',
 
-    handler(channel, data) {
-        let user = channel.users.get(data.event.user),
-            userName = user.displayName || user.name,
-            args = data.args;
+    handler(channel, command, event, args) {
+        let user = channel.users.get(event.user),
+            userName = user.displayName || user.name;
 
         if (args.length < 1) {
-            channel.message(`@${userName}, usage: ${data.command.name} <user>`);
+            channel.message(`@${userName}, usage: ${command.name} <user>`);
             channel.message(`@${userName}, takes a partial name of a user, and tries to autocomplete it.`);
             return;
         }

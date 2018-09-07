@@ -3,8 +3,8 @@ let formatDate = require('../common/formatdate');
 module.exports = {
     name: 'livetime',
 
-    handler(channel, data) {
-        let user = channel.users.get(data.event.user),
+    handler(channel, command, event, args) {
+        let user = channel.users.get(event.user),
             userName = user.displayName || user.name;
 
         if (channel.isLive) {

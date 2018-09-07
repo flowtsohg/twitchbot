@@ -3,10 +3,9 @@ let twitchApi = require('../src/twitchapi');
 module.exports = {
     name: 'howlong',
 
-    handler(channel, data) {
-        let user = channel.users.get(data.event.user),
+    handler(channel, command, event, args) {
+        let user = channel.users.get(event.user),
             userName = user.displayName || user.name,
-            args = data.args,
             targetName = userName;
 
         if (args.length) {
