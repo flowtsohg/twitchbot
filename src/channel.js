@@ -153,9 +153,14 @@ module.exports = class Channel extends EventEmitter {
     }
 
     handleReplacements(data, event) {
-        data = data.trim();
+        data = data.replace(/\$streamer/g, this.name);
+        data = data.replace(/\$owner/g, this.bot.connection.name);
 
         if (event) {
+            data = data.replace(/\$user/g, event.user);
+
+            // Arguments must be processed after all other substitutions.
+            // This is to allow the arguments themselves to be templates like $user.
             let args = event.data.split(' ').slice(1);
 
             data = data.replace(/\$arg(\d+)/g, (match, index) => {
@@ -163,11 +168,7 @@ module.exports = class Channel extends EventEmitter {
             });
 
             data = data.replace(/\$args/g, args.join(' '));
-            data = data.replace(/\$user/g, event.user);
         }
-
-        data = data.replace(/\$streamer/g, this.name);
-        data = data.replace(/\$owner/g, this.bot.connection.name);
 
         return data.trim();
     }
