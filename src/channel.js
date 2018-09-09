@@ -157,7 +157,9 @@ module.exports = class Channel extends EventEmitter {
         data = data.replace(/\$owner/g, this.bot.connection.name);
 
         if (event) {
-            data = data.replace(/\$user/g, event.user);
+            // Use the display name when it exists.
+            // This perserves capital letters and such.
+            data = data.replace(/\$user/g, event.tags['display-name'] || event.user);
 
             // Arguments must be processed after all other substitutions.
             // This is to allow the arguments themselves to be templates like $user.
