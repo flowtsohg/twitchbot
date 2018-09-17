@@ -3,62 +3,78 @@ let fs = require('fs');
 let Timer = require('./timer');
 
 module.exports = class DB extends EventEmitter {
-    constructor(folder, initObject) {
-        super();
+  /**
+   * @param {string} folder
+   * @param {object} initObject
+   */
+  constructor(folder, initObject) {
+    super();
 
-        this.folder = folder;
-        this.path = `${folder}/db.json`;
+    this.folder = folder;
+    this.path = `${folder}/db.json`;
 
-        if (!fs.existsSync(folder)) {
-            fs.mkdirSync(folder);
-        }
-
-        let db;
-
-        if (fs.existsSync(this.path)) {
-            try {
-                db = JSON.parse(fs.readFileSync(this.path, 'utf8'));
-            } catch (e) {
-                throw new Error('Failed to parse the database!');
-            }
-        }
-
-        if (!db) {
-            db = initObject || {};
-
-            // Create the file if it doesn't exist.
-            fs.writeFileSync(this.path, JSON.stringify(db));
-        }
-
-        this.db = db;
-        this.saver = new Timer(() => this.save(), 60000);
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder);
     }
 
-    connect() {
-        this.saver.start();
+    let db;
+
+    if (fs.existsSync(this.path)) {
+      try {
+        db = JSON.parse(fs.readFileSync(this.path, 'utf8'));
+      } catch (e) {
+        throw new Error('Failed to parse the database!');
+      }
     }
 
-    disconnect() {
-        this.save();
+    if (!db) {
+      db = initObject || {};
 
-        this.saver.stop();
+      // Create the file if it doesn't exist.
+      fs.writeFileSync(this.path, JSON.stringify(db));
     }
 
-    setSaveTimeout(timeout) {
-        this.saver.setTimeout(timeout);
-    }
+    this.db = db;
+    this.saver = new Timer(() => this.save(), 60000);
+  }
 
-    save() {
-        // First copy the DB.
-        // This is intentionally done with a syncronous read-write.
-        // If the database is being saved and there is an unexpected shutdown, all of the data can be lost.
-        // These operations do not affect the original file.
-        // Therefore, if something happens, the original file should still be intact.
-        // If something happens after this operation, the backup file could be used.
-        fs.writeFileSync(`${this.path}.backup`, fs.readFileSync(this.path, 'utf8'));
+  /**
+   *
+   */
+  connect() {
+    this.saver.start();
+  }
 
-        fs.writeFileSync(this.path, JSON.stringify(this.db));
+  /**
+   *
+   */
+  disconnect() {
+    this.save();
 
-        this.emit('saved');
-    }
+    this.saver.stop();
+  }
+
+  /**
+   * @param {number} timeout
+   */
+  setSaveTimeout(timeout) {
+    this.saver.setTimeout(timeout);
+  }
+
+  /**
+   *
+   */
+  save() {
+    // First copy the DB.
+    // This is intentionally done with a syncronous read-write.
+    // If the database is being saved and there is an unexpected shutdown, all of the data can be lost.
+    // These operations do not affect the original file.
+    // Therefore, if something happens, the original file should still be intact.
+    // If something happens after this operation, the backup file could be used.
+    fs.writeFileSync(`${this.path}.backup`, fs.readFileSync(this.path, 'utf8'));
+
+    fs.writeFileSync(this.path, JSON.stringify(this.db));
+
+    this.emit('saved');
+  }
 };

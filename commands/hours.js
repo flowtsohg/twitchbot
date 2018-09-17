@@ -1,14 +1,13 @@
 module.exports = {
-    name: 'hours',
+  name: 'hours',
 
-    eachUser(user) {
-        user.seconds = 0;
-    },
+  eachUser(user) {
+    user.seconds = 0;
+  },
 
-    handler(channel, command, event, args) {
-        let user = channel.users.get(event.user),
-            userName = user.displayName || user.name;
+  handler(channel, command, event, args) {
+    let user = channel.users.get(event.user);
 
-        channel.message(`@${userName}, ${Math.floor(user.seconds / 360) / 10} hours.`);
-    }
+    channel.message(`@${user.name}, ${Math.floor(user.seconds / 360) / 10} hours.`);
+  },
 };

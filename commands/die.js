@@ -1,7 +1,7 @@
 module.exports = {
-    name: 'die',
+  name: 'die',
 
-    handler(channel, command, event, args) {
-        channel.bot.disconnect();
-    }
+  handler(channel, command, event, args) {
+    channel.bot.disconnect();
+  },
 };

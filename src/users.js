@@ -1,121 +1,139 @@
-﻿let EventEmitter = require('events');
+let EventEmitter = require('events');
 
 module.exports = class Users extends EventEmitter {
-    constructor(db) {
-        super();
+  /**
+   * @param {DB} db
+   */
+  constructor(db) {
+    super();
 
-        this.users = db.users;
-        this.chatters = new Map();
-        this.mods = new Set();
+    this.users = db.users;
+    this.chatters = new Map();
+    this.mods = new Set();
+  }
+
+  /**
+   * @param {string} displayName
+   */
+  add(displayName) {
+    // All Twitch names are lower case.
+    let name = displayName.toLowerCase();
+
+    // If this user is a chatter, there is no need to do anything.
+    let chatters = this.chatters;
+    let chatter = chatters.get(name);
+
+    if (chatter) {
+      // Update the display name if needed.
+      if (displayName !== name) {
+        chatter.name = displayName;
+      }
+
+      return;
     }
 
-    add(displayName) {
-        // All Twitch names are lower case.
-        let name = displayName.toLowerCase();
+    // If this user is in the DB, add it to the chatters.
+    let users = this.users;
+    let user = users[name];
 
-        // If this user is a chatter, there is no need to do anything.
-        let chatters = this.chatters,
-            chatter = chatters.get(name);
+    if (user) {
+      chatters.set(name, user);
+      return;
+    } else {
+      // Otherwise this is a new user, so create it, add it to the DB, and add it to the chatters.
+      user = {name};
 
-        if (chatter) {
-            // Update the display name if needed.
-            if (displayName !== name) {
-                chatter.displayName = displayName;
-            }
+      // Allows commands to setup per-user data.
+      // See Channel.eachUser().
+      this.emit('new', user);
 
-            return;
-        }
-
-        // If this user is in the DB, add it to the chatters.
-        let users = this.users,
-            user = users[name];
-
-        if (user) {
-            chatters.set(name, user);
-            return;
-        } else {
-            // Otherwise this is a new user, so create it, add it to the DB, and add it to the chatters.
-            user = {name};
-
-            // Allows commands to setup per-user data.
-            // See Channel.eachUser().
-            this.emit('new', user);
-
-            users[name] = user;
-            chatters.set(name, user);
-        }
-
-        // Update the display name if needed.
-        if (displayName !== name) {
-            user.displayName = displayName;
-        }
-
-        this.emit('added', user);
+      users[name] = user;
+      chatters.set(name, user);
     }
 
-    setMod(name, mod) {
-        // All Twitch names are lower case.
-        name = name.toLowerCase();
-
-        if (mod) {
-            this.mods.add(name);
-        } else {
-            this.mods.delete(name);
-        }
+    // Update the display name if needed.
+    if (displayName !== name) {
+      user.name = displayName;
     }
 
-    get(name, autocomplete) {
-        // All Twitch names are lower case.
-        name = name.toLowerCase();
+    this.emit('added', user);
+  }
 
-        // Allow to refer to users with the Twitch @user notation.
-        if (name[0] === '@') {
-            name = name.substring(1);
-        }
+  /**
+   * @param {string} name
+   * @param {boolean} mod
+   */
+  setMod(name, mod) {
+    // All Twitch names are lower case.
+    name = name.toLowerCase();
 
-        // If this is an active chatter, return it.
-        let chatters = this.chatters,
-            chatter = chatters.get(name);
+    if (mod) {
+      this.mods.add(name);
+    } else {
+      this.mods.delete(name);
+    }
+  }
 
-        if (chatter) {
-            return chatter;
-        }
+  /**
+   * @param {string} name
+   * @param {boolean} autocomplete
+   * @return {?object}
+   */
+  get(name, autocomplete) {
+    // All Twitch names are lower case.
+    name = name.toLowerCase();
 
-        // Otherwise, if autocomplete is true, look for this name in the chatters.
-        if (autocomplete) {
-            for (let chatter of chatters.values()) {
-                if (chatter.name.startsWith(name)) {
-                    return chatter;
-                }
-            }
-        }
-
-        // Or maybe it's a user that is in the DB but not chatting right now.
-        let users = this.users,
-            user = users[name];
-
-        if (user) {
-            return user;
-        }
-
-        // Autocomplete all users in the DB and look for that pesky user!
-        if (autocomplete) {
-            for (let user of Object.values(users)) {
-                if (user.name.startsWith(name)) {
-                    return user;
-                }
-            }
-        }
-
-        // Give up.
-        return null;
+    // Allow to refer to users with the Twitch @user notation.
+    if (name[0] === '@') {
+      name = name.substring(1);
     }
 
-    remove(name) {
-        // All Twitch names are lower case.
-        name = name.toLowerCase();
+    // If this is an active chatter, return it.
+    let chatters = this.chatters;
+    let chatter = chatters.get(name);
 
-        // Deletes this user from the chatters, the DB is not affected.
-        this.chatters.delete(name);
+    if (chatter) {
+      return chatter;
     }
+
+    // Otherwise, if autocomplete is true, look for this name in the chatters.
+    if (autocomplete) {
+      for (let chatter of chatters.values()) {
+        if (chatter.name.startsWith(name)) {
+          return chatter;
+        }
+      }
+    }
+
+    // Or maybe it's a user that is in the DB but not chatting right now.
+    let users = this.users;
+    let user = users[name];
+
+    if (user) {
+      return user;
+    }
+
+    // Autocomplete all users in the DB and look for that pesky user!
+    if (autocomplete) {
+      for (let user of Object.values(users)) {
+        if (user.name.startsWith(name)) {
+          return user;
+        }
+      }
+    }
+
+    // Give up.
+    return null;
+  }
+
+  /**
+   * @param {string} name
+   */
+  remove(name) {
+    // All Twitch names are lower case.
+    name = name.toLowerCase();
+
+    // Deletes this user from the chatters, the DB is not affected.
+    this.chatters.delete(name);
+  }
 };

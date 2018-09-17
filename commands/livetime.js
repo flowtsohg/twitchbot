@@ -1,18 +1,15 @@
 let formatDate = require('../common/formatdate');
 
 module.exports = {
-    name: 'livetime',
+  name: 'livetime',
 
-    handler(channel, command, event, args) {
-        let user = channel.users.get(event.user),
-            userName = user.displayName || user.name;
+  handler(channel, command, event, args) {
+    let user = channel.users.get(event.user);
 
-        if (channel.isLive) {
-            let d = new Date(Date.now() - channel.wentLiveOn);
-
-            channel.message(`@${userName}, live for ${formatDate('{hh} hours, {mm} minutes, {ss} seconds', d)}`);
-        } else {
-            channel.message(`@${userName}, the channel is not live.`);
-        }
+    if (channel.isLive) {
+      channel.message(`@${user.name}, live for ${formatDate('{hh} hours, {mm} minutes, {ss} seconds', (new Date(Date.now() - channel.wentLiveOn)))}`);
+    } else {
+      channel.message(`@${user.name}, the channel is not live.`);
     }
+  },
 };
