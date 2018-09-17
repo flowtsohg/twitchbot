@@ -98,9 +98,9 @@ module.exports = class Users extends EventEmitter {
 
     // Otherwise, if autocomplete is true, look for this name in the chatters.
     if (autocomplete) {
-      for (let chatter of chatters.values()) {
-        if (chatter.name.startsWith(name)) {
-          return chatter;
+      for (let chatter of chatters.keys()) {
+        if (chatter.startsWith(name)) {
+          return chatters.get(chatter);
         }
       }
     }
@@ -115,9 +115,9 @@ module.exports = class Users extends EventEmitter {
 
     // Autocomplete all users in the DB and look for that pesky user!
     if (autocomplete) {
-      for (let user of Object.values(users)) {
-        if (user.name.startsWith(name)) {
-          return user;
+      for (let user of Object.keys(users)) {
+        if (user.startsWith(name)) {
+          return users[user];
         }
       }
     }
