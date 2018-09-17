@@ -61,7 +61,7 @@ module.exports = {
 
         target.points += amount;
 
-        channel.message(`@${user.name}, added ${amount} ${singleOrPlural} to @${target.displayName || target.name}.`);
+        channel.message(`@${user.name}, added ${amount} ${singleOrPlural} to @${target.name}.`);
       } else {
         for (let chatter of channel.users.chatters.values()) {
           chatter.points += amount;
@@ -90,7 +90,7 @@ module.exports = {
       if (user.name === target.name) {
         channel.message(`@${user.name}, you have ${amount} ${singleOrPlural}.`);
       } else {
-        channel.message(`@${target.displayName || target.name} has ${amount} ${singleOrPlural}.`);
+        channel.message(`@${target.name} has ${amount} ${singleOrPlural}.`);
       }
     } else if (op === 'donate') {
       if (args.length < 3) {
@@ -139,7 +139,7 @@ module.exports = {
         user.points -= amount;
         target.points += amount;
 
-        channel.message(`@${user.name} donated ${amount} ${singleOrPlural} to @${target.displayName || target.name}.`);
+        channel.message(`@${user.name} donated ${amount} ${singleOrPlural} to @${target.name}.`);
       }
     } else if (op === 'gamble') {
       if (args.length < 2) {
@@ -348,7 +348,7 @@ module.exports = {
 
       let top = Object.values(channel.users.users).slice().sort((a, b) => b.points - a.points).slice(0, amount).filter((user) => user.points > 0);
 
-      channel.message(`@${user.name}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.displayName || a.name} (${a.points})`).join(', ')}.`);
+      channel.message(`@${user.name}, top ${amount} ${channel.settings.pointsHoldersNamePlural || 'chatters'}: ${top.map((a) => `${a.name} (${a.points})`).join(', ')}.`);
     } else {
       channel.message(`@${user.name}, what is "${op}"?`);
     }
