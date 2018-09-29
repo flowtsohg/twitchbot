@@ -2,20 +2,14 @@ let fetch = require('node-fetch');
 
 /**
  * @param {Channel} channel
- * @param {object} stream
+ * @param {Object} stream
  */
 async function trackPlayer(channel, stream) {
   if (stream) {
     let stats = channel.settings.wc3stats;
 
     if (stats) {
-      let player = stats.player;
-      let response = await fetch(`http://classic.battle.net/war3/ladder/W3XP-player-profile.aspx?Gateway=Northrend&PlayerName=${player}`);
-      let text = await response.text();
-      let solo = getSoloOrTeamStats(text, 'Solo');
-      let team = getSoloOrTeamStats(text, 'Team');
-
-      stats.stats = [...solo, ...team];
+      stats.stats = await getPlayerStats(stats.player);
 
       channel.log(`Tracking the stats of @${player}.`);
     }
@@ -24,25 +18,49 @@ async function trackPlayer(channel, stream) {
 
 /**
  * @param {string} text
- * @param {string} type
- * @return {object}
+ * @param {number} offset
+ * @return {Object}
  */
-function getSoloOrTeamStats(text, type) {
-  let wins = 0;
-  let losses = 0;
-  let offset = text.indexOf(`${type} Games`);
-
+function getStatsFromOffset(text, offset) {
   if (offset > -1) {
-    let winsStart = text.indexOf('"small"', text.indexOf('Wins:', offset)) + 8;
-    let winsEnd = text.indexOf('<', winsStart);
-    let lossesStart = text.indexOf('"small"', text.indexOf('Losses:', offset)) + 8;
-    let lossesEnd = text.indexOf('<', lossesStart);
+    offset = text.indexOf('Wins:', offset);
 
-    wins = parseInt(text.slice(winsStart, winsEnd)) || 0;
-    losses = parseInt(text.slice(lossesStart, lossesEnd)) || 0;
+    if (offset !== -1) {
+      let winsStart = text.indexOf('"small"', offset) + 8;
+      let winsEnd = text.indexOf('<', winsStart);
+      let lossesStart = text.indexOf('"small"', text.indexOf('Losses:', offset)) + 8;
+      let lossesEnd = text.indexOf('<', lossesStart);
+
+      offset = lossesEnd;
+      wins = parseInt(text.slice(winsStart, winsEnd)) || 0;
+      losses = parseInt(text.slice(lossesStart, lossesEnd)) || 0;
+
+      return {offset, wins, losses};
+    }
   }
 
-  return [wins, losses];
+  return {offset: -1, wins: 0, losses: 0};
+}
+
+/**
+ * @param {string} text
+ * @return {Object}
+ */
+function getATStats(text) {
+  let wins = 0;
+  let losses = 0;
+  let offset = -1;
+  let stats = getStatsFromOffset(text, text.indexOf('class="header4">Arranged Teams'));
+
+  while (stats.offset !== -1) {
+    wins += stats.wins;
+    losses += stats.losses;
+    offset = stats.offset;
+
+    stats = getStatsFromOffset(text, offset);
+  }
+
+  return {offset, wins, losses};
 }
 
 /**
@@ -60,23 +78,26 @@ function statsToString(wins, losses) {
 
 /**
  * @param {string} player
- * @param {Array<number>} base
+ * @param {?Array<number>} base
  * @return {Promise<Array<number>>}
  */
 async function getPlayerStats(player, base) {
   let response = await fetch(`http://classic.battle.net/war3/ladder/W3XP-player-profile.aspx?Gateway=Northrend&PlayerName=${player}`);
   let text = await response.text();
-  let solo = getSoloOrTeamStats(text, 'Solo');
-  let team = getSoloOrTeamStats(text, 'Team');
+  let solo = getStatsFromOffset(text, text.indexOf('class="header4">Solo Games'));
+  let rt = getStatsFromOffset(text, text.indexOf('class="header4">Team Games'));
+  let at = getATStats(text);
 
   if (base) {
-    solo[0] -= base[0];
-    solo[1] -= base[1];
-    team[0] -= base[2];
-    team[1] -= base[3];
+    solo.wins -= base[0];
+    solo.losses -= base[1];
+    rt.wins -= base[2];
+    rt.losses -= base[3];
+    at.wins -= base[4];
+    at.losses -= base[5];
   }
 
-  return [...solo, ...team];
+  return [solo.wins, solo.losses, rt.wins, rt.losses, at.wins, at.losses];
 }
 
 /**
@@ -87,7 +108,7 @@ async function getPlayerStats(player, base) {
 async function messagePlayerStats(channel, player, base) {
   let stats = await getPlayerStats(player, base);
 
-  channel.message(`@${player}: Solo - ${statsToString(stats[0], stats[1])}, Team - ${statsToString(stats[2], stats[3])}`);
+  channel.message(`@${player}: Solo - ${statsToString(stats[0], stats[1])}, RT - ${statsToString(stats[2], stats[3])}, AT - ${statsToString(stats[4], stats[5])}`);
 }
 
 module.exports = {
