@@ -31,11 +31,7 @@ function getStatsFromOffset(text, offset) {
       let lossesStart = text.indexOf('"small"', text.indexOf('Losses:', offset)) + 8;
       let lossesEnd = text.indexOf('<', lossesStart);
 
-      offset = lossesEnd;
-      wins = parseInt(text.slice(winsStart, winsEnd)) || 0;
-      losses = parseInt(text.slice(lossesStart, lossesEnd)) || 0;
-
-      return {offset, wins, losses};
+      return {offset: lossesEnd, wins: parseInt(text.slice(winsStart, winsEnd)) || 0, losses: parseInt(text.slice(lossesStart, lossesEnd)) || 0};
     }
   }
 

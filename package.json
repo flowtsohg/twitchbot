@@ -1,6 +1,6 @@
 {
   "name": "twitchbot",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "A simple NodeJS bot for Twitch",
   "main": "./index.js",
   "directories": {
