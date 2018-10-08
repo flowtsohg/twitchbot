@@ -268,6 +268,16 @@ module.exports = class Channel extends EventEmitter {
   }
 
   /**
+   * Fake a message recieved from Twitch, for easy local command invocations, or other uses.
+   * The message user is the bot owner.
+   *
+   * @param {string} message
+   */
+  fakeMessage(message) {
+    this.bot.fakeMessage(this.name, message);
+  }
+
+  /**
    * @param {object} event
    */
   handleEvent(event) {

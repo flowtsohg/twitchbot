@@ -248,6 +248,17 @@ module.exports = class Bot extends EventEmitter {
   }
 
   /**
+   * Fake a message recieved from Twitch, for easy local command invocations, or other uses.
+   * The message user is the bot owner.
+   *
+   * @param {string} channel
+   * @param {string} message
+   */
+  fakeMessage(channel, message) {
+    this.received({line: `FAKE_PRIVMSG #${channel} :${message}`, tags: {fake: true}, type: 'message', user: this.connection.name, channel, data: message});
+  }
+
+  /**
    *
    */
   sendBatch() {

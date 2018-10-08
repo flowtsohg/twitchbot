@@ -11,7 +11,7 @@ async function trackPlayer(channel, stream) {
     if (stats) {
       stats.stats = await getPlayerStats(stats.player);
 
-      channel.log(`Tracking the stats of @${player}.`);
+      channel.log(`Tracking the stats of @${stats.player}.`);
     }
   }
 }
